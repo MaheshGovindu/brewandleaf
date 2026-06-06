@@ -36,6 +36,7 @@ router.delete('/products/:id', controller.deleteProduct);
 
 // Orders & Billing
 router.post('/orders', controller.createOrder);
+router.post('/upload-invoice', upload.single('file'), controller.uploadInvoice);
 router.get('/orders', controller.getOrders);
 router.get('/orders/:id', controller.getOrderById);
 

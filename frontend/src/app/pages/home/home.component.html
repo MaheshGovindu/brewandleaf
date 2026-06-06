@@ -36,7 +36,7 @@
     <div class="product-grid">
       <div class="product-card" *ngFor="let prod of featuredProducts">
         <div class="product-image">
-          <img [src]="prod.image_url || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&auto=format&fit=crop&q=60'" [alt]="prod.name">
+          <img [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name">
         </div>
         <div class="product-info">
           <h3>{{prod.name}}</h3>

@@ -230,3 +230,11 @@ exports.getSummaryStats = (req, res) => {
         res.json(results[0]);
     });
 };
+
+// Upload invoice/pdf and return public URL
+exports.uploadInvoice = (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+    const filePath = `/uploads/${req.file.filename}`;
+    const fullUrl = `${req.protocol}://${req.get('host')}${filePath}`;
+    res.json({ url: fullUrl });
+};

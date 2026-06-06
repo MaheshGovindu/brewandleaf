@@ -18,7 +18,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let prod of products">
-          <td><img [src]="prod.image_url || 'assets/img/placeholder.png'" width="50"></td>
+          <td><img [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name" width="50"></td>
           <td>{{prod.name}}</td>
           <td>{{prod.category_name}}</td>
           <td>{{prod.price | currency}}</td>

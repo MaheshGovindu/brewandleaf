@@ -17,7 +17,7 @@ describe('AppComponent', () => {
   it(`should keep the app title`, () => {
     const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
-    expect(app.title).toEqual('intricaretech');
+    expect(app.title).toEqual('brewandleaf');
   });
 
   it('should render the preview switcher', () => {

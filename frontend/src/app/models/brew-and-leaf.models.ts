@@ -40,6 +40,8 @@ export interface Order {
     id?: number;
     customer_name: string;
     customer_email: string;
+    customer_phone?: string;
+    invoice_number?: string;
     items: OrderItem[];
     total_amount: number;
     discount_applied: number;

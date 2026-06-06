@@ -6,7 +6,7 @@
     </div>
     <div class="products-grid">
       <div class="product-item" *ngFor="let prod of products" (click)="addToCart(prod)">
-        <img [src]="prod.image_url || 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&auto=format&fit=crop&q=60'">
+        <img [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name">
         <div class="info">
           <p class="name">{{prod.name}}</p>
           <p class="price">{{prod.price | currency}}</p>
@@ -16,9 +16,13 @@
   </div>
 
   <div class="cart-area">
-    <h3>Current Order</h3>
+    <div class="cart-header">
+      <h3>Current Order</h3>
+      <span class="item-count">{{cart.length}} items</span>
+    </div>
     <div class="customer-info">
       <input type="text" [(ngModel)]="customerName" placeholder="Customer Name">
+      <input type="tel" name="phone" [(ngModel)]="customerPhone" placeholder="WhatsApp Number">
       <input type="email" [(ngModel)]="customerEmail" placeholder="Customer Email">
     </div>
 
@@ -63,7 +67,9 @@
       <h2>INVOICE</h2>
     </div>
     <div style="margin-bottom: 20px;">
+      <p><strong>Invoice #:</strong> {{invoiceNumber || 'Pending'}}</p>
       <p><strong>Customer:</strong> {{customerName || 'Walk-in Customer'}}</p>
+      <p><strong>Phone:</strong> {{customerPhone || 'N/A'}}</p>
       <p><strong>Date:</strong> {{today | date:'medium'}}</p>
     </div>
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">

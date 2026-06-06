@@ -30,7 +30,7 @@ export class ProductManagementComponent implements OnInit {
   showModal = false;
   isEditing = false;
 
-  constructor(private apiService: ApiService) {}
+  constructor(public apiService: ApiService) {}
 
   ngOnInit(): void {
     this.loadData();

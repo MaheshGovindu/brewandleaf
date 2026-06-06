@@ -8,8 +8,26 @@ import { Category, SubCategory, Product, Order, Stats } from '../models/brew-and
 })
 export class ApiService {
   private apiUrl = 'http://localhost:5000/api/brewandleaf';
+  private backendUrl = 'http://localhost:5000';
 
   constructor(private http: HttpClient) { }
+
+  getFullImageUrl(imageUrl?: string | null): string {
+    if (!imageUrl) {
+      return 'assets/img/placeholder.png';
+    }
+
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+
+    return `${this.backendUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+  }
+
+  uploadInvoice(formData: FormData) {
+    // Upload invoice PDF to backend uploads folder and return { url }
+    return this.http.post<{url: string}>(`${this.backendUrl}/api/brewandleaf/upload-invoice`, formData);
+  }
 
   // Categories
   getCategories(): Observable<Category[]> {

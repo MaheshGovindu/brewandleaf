@@ -5,17 +5,54 @@
   font-family: var(--font-base);
 
   .sidebar {
-    width: 260px;
-    background-color: var(--color-primary);
-    color: white;
+    width: 280px;
+    background: linear-gradient(180deg, #fcf2e6 0%, #f2dfc2 100%);
+    color: var(--text-main);
     display: flex;
     flex-direction: column;
+    border-right: 1px solid rgba(75, 54, 33, 0.12);
+    box-shadow: 8px 0 30px rgba(75, 54, 33, 0.08);
 
     .sidebar-header {
-      padding: 2rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      h3 { margin: 0; font-family: var(--font-heading); }
-      p { margin: 0; font-size: 0.8rem; opacity: 0.7; }
+      padding: 2rem 1.75rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(75, 54, 33, 0.08);
+
+      .brand-mark {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #4B3621 0%, #8B4513 100%);
+        display: grid;
+        place-items: center;
+      }
+
+      .logo {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+      }
+
+      .brand-head {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .brand-title {
+        margin: 0;
+        font-family: var(--font-heading);
+        font-size: 1.2rem;
+        color: var(--color-primary);
+      }
+
+      p {
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--color-text-soft);
+      }
     }
 
     .sidebar-nav {
@@ -24,24 +61,34 @@
       flex-direction: column;
 
       a {
-        padding: 1rem 2rem;
-        color: rgba(255, 255, 255, 0.7);
+        padding: 1rem 1.8rem;
+        color: var(--color-primary);
         text-decoration: none;
         display: flex;
         align-items: center;
         gap: 1rem;
-        transition: all 0.3s;
+        transition: all 0.25s ease;
+        border-radius: 14px;
+        margin: 0.35rem 0;
+        background: rgba(75, 54, 33, 0.04);
 
-        i { font-size: 1.2rem; }
+        i { font-size: 1.2rem; color: #8B4513; }
 
-        &:hover, &.active {
-          background-color: rgba(255, 255, 255, 0.1);
-          color: white;
+        &:hover {
+          background: rgba(75, 54, 33, 0.14);
+          color: var(--color-primary-dark);
+        }
+
+        &.active {
+          background: var(--color-primary);
+          color: var(--color-white);
+          box-shadow: 0 10px 20px rgba(75, 54, 33, 0.1);
         }
         
         &.logout {
             margin-top: auto;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(75, 54, 33, 0.12);
+            padding-top: 1.2rem;
         }
       }
     }

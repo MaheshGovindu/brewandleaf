@@ -16,7 +16,7 @@ export class HomeComponent implements OnInit {
   categories: Category[] = [];
   featuredProducts: Product[] = [];
 
-  constructor(private apiService: ApiService) {}
+  constructor(public apiService: ApiService) {}
 
   ngOnInit(): void {
     this.loadCategories();
