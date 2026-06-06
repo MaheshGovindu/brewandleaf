@@ -1,72 +1,190 @@
-<div class="home-container">
-  <!-- Hero Section -->
-  <header class="hero">
-    <nav class="navbar">
-      <div class="logo">Brew & Leaf</div>
-      <ul class="nav-links">
-        <li><a routerLink="/">Home</a></li>
-        <li><a href="#menu">Menu</a></li>
-        <li><a href="#about">About Us</a></li>
-        <li><a href="#contact">Contact</a></li>
-        <li><a routerLink="/login" class="btn-admin">Admin</a></li>
-      </ul>
+<div class="home-shell">
+  <header class="site-header">
+    <a class="brand" routerLink="/">
+      <span class="brand-mark">B</span>
+      <span class="brand-copy">
+        <strong>Brew & Leaf</strong>
+        <small>2026 cafe experience</small>
+      </span>
+    </a>
+
+    <nav class="site-nav">
+      <a href="#menu">Menu</a>
+      <a href="#specials">Specials</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+      <a routerLink="/admin" class="admin-btn">Admin</a>
     </nav>
-    <div class="hero-content">
-      <h1>Experience the Perfect Brew</h1>
-      <p>From rich coffees to refreshing milkshakes, find your flavor at Brew & Leaf.</p>
-      <a href="#menu" class="btn-primary">View Menu</a>
-    </div>
   </header>
 
-  <!-- Categories Section -->
-  <section class="categories" id="menu">
-    <h2>Our Specialties</h2>
-    <div class="category-grid">
-      <div class="category-card" *ngFor="let cat of categories">
-        <div class="cat-icon">☕</div>
-        <h3>{{cat.name}}</h3>
-        <p>{{cat.description}}</p>
-      </div>
-    </div>
-  </section>
+  <main>
+    <section class="hero-section">
+      <div class="hero-copy">
+        <p class="eyebrow">Brew & Leaf</p>
+        <h1>Modern coffee, matcha and food menu built for your 2026 cafe brand.</h1>
+        <p class="hero-text">
+          Manage banners, categories, sub-categories and products from admin, then show them in a premium homepage flow inspired by modern cafe brands.
+        </p>
 
-  <!-- Featured Products -->
-  <section class="products">
-    <h2>Popular Choices</h2>
-    <div class="product-grid">
-      <div class="product-card" *ngFor="let prod of featuredProducts">
-        <div class="product-image">
-          <img [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name">
+        <div class="hero-actions">
+          <a href="#menu" class="primary-btn">Explore menu</a>
+          <a routerLink="/admin" class="secondary-btn">Open admin</a>
         </div>
-        <div class="product-info">
-          <h3>{{prod.name}}</h3>
-          <p class="price">{{prod.price | currency}}</p>
-          <button class="btn-add">Order Now</button>
+
+        <div class="hero-stats">
+          <div>
+            <strong>{{products.length}}+</strong>
+            <span>menu items</span>
+          </div>
+          <div>
+            <strong>{{subCategories.length}}</strong>
+            <span>menu groups</span>
+          </div>
+          <div>
+            <strong>{{categories.length}}</strong>
+            <span>store sections</span>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <!-- About Section -->
-  <section class="about" id="about">
-    <div class="about-content">
-      <h2>About Brew & Leaf</h2>
-      <p>We are passionate about bringing you the finest coffee and snacks. Our beans are ethically sourced and roasted to perfection. Whether you need a morning pick-me-up or a place to relax, Brew & Leaf is your home away from home.</p>
-    </div>
-  </section>
+      <div class="hero-media" *ngIf="currentBanner as banner">
+        <div class="banner-card">
+          <div class="banner-image">
+            <img *ngIf="banner.image_url" [src]="apiService.getFullImageUrl(banner.image_url)" [alt]="banner.title">
+            <div class="banner-placeholder" *ngIf="!banner.image_url">Brew & Leaf</div>
+          </div>
+          <div class="banner-content">
+            <p class="eyebrow">Featured banner</p>
+            <h2>{{banner.title}}</h2>
+            <p>{{banner.description}}</p>
+            <a [href]="banner.cta_link || '#menu'">{{banner.cta_label || 'Explore menu'}}</a>
+          </div>
+        </div>
 
-  <!-- Contact Section -->
-  <section class="contact" id="contact">
-    <h2>Get in Touch</h2>
-    <div class="contact-details">
-      <p><i class="bi bi-geo-alt"></i> 123 Coffee Lane, Brew City</p>
-      <p><i class="bi bi-telephone"></i> +1 234 567 890</p>
-      <p><i class="bi bi-envelope"></i> hello&#64;brewandleaf.com</p>
-    </div>
-  </section>
+        <div class="banner-dots" *ngIf="activeBanners.length > 1">
+          <button
+            type="button"
+            *ngFor="let banner of activeBanners; let i = index"
+            [class.active]="i === bannerIndex"
+            (click)="goToBanner(i)"
+            [attr.aria-label]="'Show banner ' + (i + 1)">
+          </button>
+        </div>
+      </div>
+    </section>
 
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2026 Brew & Leaf. All rights reserved.</p>
+    <section class="category-strip">
+      <article *ngFor="let category of categories">
+        <h3>{{category.name}}</h3>
+        <p>{{category.description}}</p>
+      </article>
+    </section>
+
+    <section class="feature-section" id="specials">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Popular now</p>
+          <h2>Best-selling drinks and snacks</h2>
+        </div>
+        <a href="#menu">See full menu</a>
+      </div>
+
+      <div class="feature-grid">
+        <a class="feature-card" *ngFor="let prod of featuredProducts" [routerLink]="['/product', prod.id]">
+          <div class="feature-media">
+            <img *ngIf="prod.image_url" [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name">
+            <span *ngIf="!prod.image_url">{{prod.sub_category_name || prod.category_name}}</span>
+          </div>
+          <div class="feature-body">
+            <div class="feature-top">
+              <span class="tag">{{prod.sub_category_name || prod.category_name}}</span>
+              <strong>{{prod.price | currency:'INR':'symbol':'1.0-0'}}</strong>
+            </div>
+            <h3>{{prod.name}}</h3>
+            <p>{{prod.description}}</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="menu-section" id="menu">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Backend powered menu</p>
+          <h2>Multiple menu groups like your uploaded image</h2>
+        </div>
+        <p>These sections are generated from category, sub-category and product records so you can keep adding items from admin.</p>
+      </div>
+
+      <div class="menu-grid">
+        <article class="menu-card" *ngFor="let group of menuGroups">
+          <div class="menu-card-head">
+            <div>
+              <h3>{{group.subCategory.name}}</h3>
+              <p>{{group.subCategory.description}}</p>
+            </div>
+            <span>{{group.products.length}} items</span>
+          </div>
+
+          <div class="menu-list">
+            <a class="menu-item" *ngFor="let product of group.products" [routerLink]="['/product', product.id]">
+              <div>
+                <strong>{{product.name}}</strong>
+                <small>{{product.description}}</small>
+              </div>
+              <span>{{product.price | currency:'INR':'symbol':'1.0-0'}}</span>
+            </a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="story-section" id="about">
+      <div class="story-card">
+        <p class="eyebrow">About the store</p>
+        <h2>Built for coffee lovers, snack cravings and all-day cafe visits.</h2>
+        <p>
+          Your new design combines premium coffee-shop styling with a structured backend menu, so you can run drinks, desserts and food collections in one clean system.
+        </p>
+      </div>
+      <div class="story-list">
+        <article>
+          <h3>Fixed header</h3>
+          <p>Sticky top navigation keeps menu and admin access visible on every scroll.</p>
+        </article>
+        <article>
+          <h3>Modern footer</h3>
+          <p>Contact, social, branch info and quick links are grouped cleanly for customers.</p>
+        </article>
+        <article>
+          <h3>Scalable structure</h3>
+          <p>Categories, sub-categories and products let you add many menu groups from admin.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" id="contact">
+    <div>
+      <strong>Brew & Leaf</strong>
+      <p>Oswalwadi, Bhiwandi</p>
+      <p>Premium drinks, cafe food and desserts.</p>
+    </div>
+    <div>
+      <strong>Contact</strong>
+      <p>+91 99999 99999</p>
+      <p>hello&#64;brewandleaf.com</p>
+    </div>
+    <div>
+      <strong>Quick links</strong>
+      <a href="#menu">Menu</a>
+      <a href="#specials">Specials</a>
+      <a routerLink="/admin">Admin panel</a>
+    </div>
+    <div>
+      <strong>Instagram</strong>
+      <p>&#64;brewndleaf</p>
+      <small>&copy; 2026 Brew & Leaf. All rights reserved.</small>
+    </div>
   </footer>
 </div>

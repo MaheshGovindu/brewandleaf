@@ -1,0 +1,121 @@
+<div class="banner-page">
+  <section class="page-hero">
+    <div>
+      <p class="eyebrow">Homepage Content</p>
+      <h1>Banner studio</h1>
+      <p class="subtitle">Create hero banners with title, description, call to action and image for the homepage carousel.</p>
+    </div>
+    <button class="btn-primary" (click)="showModal = true">Add banner</button>
+  </section>
+
+  <section class="banner-grid">
+    <article class="banner-card" *ngFor="let banner of banners">
+      <div class="banner-preview">
+        <img *ngIf="banner.image_url" [src]="apiService.getFullImageUrl(banner.image_url)" [alt]="banner.title">
+        <div class="banner-fallback" *ngIf="!banner.image_url">Brew & Leaf</div>
+      </div>
+      <div class="banner-copy">
+        <div class="banner-meta">
+          <span class="status" [class.inactive]="!banner.is_active">{{banner.is_active ? 'Active' : 'Inactive'}}</span>
+          <span class="chip">{{banner.cta_label || 'CTA'}}</span>
+        </div>
+        <h3>{{banner.title}}</h3>
+        <p>{{banner.description}}</p>
+        <div class="table-actions">
+          <button class="ghost-btn" (click)="editBanner(banner)">Edit</button>
+          <button class="danger-btn" (click)="deleteBanner(banner.id!)">Delete</button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="table-shell">
+    <div class="table-header">
+      <div>
+        <h2>Stored banners</h2>
+        <p>These records feed the homepage hero carousel.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>CTA</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let banner of banners">
+            <td>{{banner.title}}</td>
+            <td>{{banner.description}}</td>
+            <td>{{banner.cta_label}} / {{banner.cta_link}}</td>
+            <td>{{banner.is_active ? 'Active' : 'Inactive'}}</td>
+            <td class="action-cell">
+              <button class="ghost-btn" (click)="editBanner(banner)">Edit</button>
+              <button class="danger-btn" (click)="deleteBanner(banner.id!)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="modal-shell" *ngIf="showModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Banner Setup</p>
+          <h2>{{isEditing ? 'Update banner' : 'Create banner'}}</h2>
+        </div>
+        <button class="icon-btn" type="button" (click)="closeModal()">×</button>
+      </div>
+
+      <form class="banner-form" (ngSubmit)="saveBanner()">
+        <label>
+          <span>Title</span>
+          <input type="text" name="title" [(ngModel)]="newBanner.title" required>
+        </label>
+
+        <label>
+          <span>Description</span>
+          <textarea name="description" [(ngModel)]="newBanner.description" required></textarea>
+        </label>
+
+        <div class="form-row">
+          <label>
+            <span>CTA label</span>
+            <input type="text" name="cta_label" [(ngModel)]="newBanner.cta_label">
+          </label>
+
+          <label>
+            <span>CTA link</span>
+            <input type="text" name="cta_link" [(ngModel)]="newBanner.cta_link">
+          </label>
+        </div>
+
+        <label>
+          <span>Banner image</span>
+          <input type="file" accept="image/*" (change)="onFileSelected($event)">
+        </label>
+
+        <label class="toggle-row">
+          <input type="checkbox" name="is_active" [(ngModel)]="newBanner.is_active">
+          <span>Show this banner in homepage carousel</span>
+        </label>
+
+        <div class="image-preview" *ngIf="newBanner.image_url">
+          <img [src]="apiService.getFullImageUrl(newBanner.image_url)" [alt]="newBanner.title || 'Banner preview'">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="ghost-btn" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Save banner</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

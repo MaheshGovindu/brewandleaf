@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-admin-dashboard',
@@ -10,5 +11,14 @@ import { RouterLink, RouterOutlet, RouterLinkActive } from '@angular/router';
   styleUrls: ['./admin-dashboard.component.scss']
 })
 export class AdminDashboardComponent {
-  constructor() {}
+  constructor(private authService: AuthService, private router: Router) {}
+
+  get userName(): string {
+    return this.authService.getUser()?.name || 'Admin';
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }

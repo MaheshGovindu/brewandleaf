@@ -2,14 +2,16 @@ export interface Category {
     id?: number;
     name: string;
     description?: string;
+    image_url?: string;
 }
 
 export interface SubCategory {
-category_name: any;
+    category_name?: string;
     id?: number;
     category_id: number;
     name: string;
     description?: string;
+    sort_order?: number;
 }
 
 export interface Product {
@@ -23,9 +25,21 @@ export interface Product {
     discount: number;
     inventory_count: number;
     image_url?: string;
+    images?: string[];
     aspect_ratio?: string;
     category_name?: string;
     sub_category_name?: string;
+    is_featured?: boolean;
+}
+
+export interface Banner {
+    id?: number;
+    title: string;
+    description: string;
+    image_url?: string;
+    cta_label?: string;
+    cta_link?: string;
+    is_active?: boolean;
 }
 
 export interface OrderItem {
@@ -47,6 +61,9 @@ export interface Order {
     discount_applied: number;
     final_amount: number;
     created_at?: string;
+    // Optional: track discount type when sending from frontend
+    discount_type?: 'amount' | 'percent';
+    discount_percent?: number;
 }
 
 export interface Stats {

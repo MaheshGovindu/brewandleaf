@@ -1,8 +1,12 @@
 <div class="mgmt-container">
-  <div class="header">
-    <h2>Manage Categories</h2>
-    <button class="btn-add" (click)="showModal = true">Add New Category</button>
-  </div>
+  <section class="page-header">
+    <div>
+      <p class="eyebrow">Menu categories</p>
+      <h2>Manage categories</h2>
+      <p class="subtext">Top-level groups like Signature Drinks, Food Menu and Desserts start here.</p>
+    </div>
+    <button class="btn-add" (click)="showModal = true">Add category</button>
+  </section>
 
   <div class="table-container">
     <table>
@@ -28,7 +32,7 @@
 
   <div class="modal" *ngIf="showModal">
     <div class="modal-content">
-      <h3>{{isEditing ? 'Edit' : 'Add'}} Category</h3>
+      <h3>{{isEditing ? 'Edit' : 'Add'}} category</h3>
       <form (ngSubmit)="saveCategory()">
         <div class="form-group">
           <label>Name</label>
