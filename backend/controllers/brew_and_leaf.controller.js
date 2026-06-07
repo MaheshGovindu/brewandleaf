@@ -101,20 +101,35 @@ exports.getProducts = (req, res) => {
     `;
     db.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        // Attach images for each product
+        // Attach images and sizes for each product
         const productIds = results.map(r => r.id);
         if (productIds.length === 0) return res.json([]);
 
         db.query('SELECT * FROM product_images WHERE product_id IN (?)', [productIds], (err, imgs) => {
             if (err) return res.status(500).json({ error: err.message });
-            const imagesByProduct = imgs.reduce((acc, row) => {
-                acc[row.product_id] = acc[row.product_id] || [];
-                acc[row.product_id].push(row.image_url);
-                return acc;
-            }, {});
+            
+            db.query('SELECT * FROM product_sizes WHERE product_id IN (?)', [productIds], (err, sizes) => {
+                if (err) return res.status(500).json({ error: err.message });
+                
+                const imagesByProduct = imgs.reduce((acc, row) => {
+                    acc[row.product_id] = acc[row.product_id] || [];
+                    acc[row.product_id].push(row.image_url);
+                    return acc;
+                }, {});
 
-            const out = results.map(p => ({ ...p, images: imagesByProduct[p.id] || [] }));
-            res.json(out);
+                const sizesByProduct = sizes.reduce((acc, row) => {
+                    acc[row.product_id] = acc[row.product_id] || [];
+                    acc[row.product_id].push({ id: row.id, size: row.size, price: row.price, costing: row.costing });
+                    return acc;
+                }, {});
+
+                const out = results.map(p => ({ 
+                    ...p, 
+                    images: imagesByProduct[p.id] || [],
+                    sizes: sizesByProduct[p.id] || []
+                }));
+                res.json(out);
+            });
         });
     });
 };
@@ -166,7 +181,7 @@ exports.deleteProduct = (req, res) => {
     });
 };
 
-// Get single product by id with images
+// Get single product by id with images and sizes
 exports.getProductById = (req, res) => {
     const id = req.params.id;
     const sql = `SELECT p.*, c.name as category_name, s.name as sub_category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id LEFT JOIN sub_categories s ON p.sub_category_id = s.id WHERE p.id = ?`;
@@ -176,9 +191,52 @@ exports.getProductById = (req, res) => {
 
         db.query('SELECT image_url FROM product_images WHERE product_id = ?', [id], (err2, imgs) => {
             if (err2) return res.status(500).json({ error: err2.message });
-            const images = imgs.map(r => r.image_url);
-            res.json({ ...results[0], images });
+            
+            db.query('SELECT id, size, price, costing FROM product_sizes WHERE product_id = ? ORDER BY size ASC', [id], (err3, sizes) => {
+                if (err3) return res.status(500).json({ error: err3.message });
+                
+                const images = imgs.map(r => r.image_url);
+                res.json({ ...results[0], images, sizes });
+            });
         });
+    });
+};
+
+// Add product size variant
+exports.addProductSize = (req, res) => {
+    const { size, price, costing } = req.body;
+    const productId = req.params.id;
+
+    const sql = 'INSERT INTO product_sizes (product_id, size, price, costing) VALUES (?, ?, ?, ?)';
+    db.query(sql, [productId, size, price, costing], (err, result) => {
+        if (err) {
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(400).json({ error: `Size '${size}' already exists for this product` });
+            }
+            return res.status(500).json({ error: err.message });
+        }
+        res.json({ id: result.insertId, size, price, costing });
+    });
+};
+
+// Update product size variant
+exports.updateProductSize = (req, res) => {
+    const { size, price, costing } = req.body;
+    const sizeId = req.params.sizeId;
+
+    const sql = 'UPDATE product_sizes SET size = ?, price = ?, costing = ? WHERE id = ?';
+    db.query(sql, [size, price, costing, sizeId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Size updated successfully' });
+    });
+};
+
+// Delete product size variant
+exports.deleteProductSize = (req, res) => {
+    const sizeId = req.params.sizeId;
+    db.query('DELETE FROM product_sizes WHERE id = ?', [sizeId], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Size deleted successfully' });
     });
 };
 

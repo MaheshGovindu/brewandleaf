@@ -14,13 +14,21 @@ export interface SubCategory {
     sort_order?: number;
 }
 
+export interface ProductSize {
+    id?: number;
+    product_id?: number;
+    size: string; // 'small', 'regular', 'large', etc.
+    price: number;
+    costing?: number;
+}
+
 export interface Product {
     id?: number;
     category_id: number;
     sub_category_id?: number;
     name: string;
     description?: string;
-    price: number;
+    price: number; // default/regular price
     costing: number;
     discount: number;
     inventory_count: number;
@@ -30,6 +38,7 @@ export interface Product {
     category_name?: string;
     sub_category_name?: string;
     is_featured?: boolean;
+    sizes?: ProductSize[]; // small, regular, large variants
 }
 
 export interface Banner {
@@ -48,6 +57,7 @@ export interface OrderItem {
     quantity: number;
     unit_price: number;
     total_price: number;
+    size?: string; // 'small', 'regular', etc.
 }
 
 export interface Order {

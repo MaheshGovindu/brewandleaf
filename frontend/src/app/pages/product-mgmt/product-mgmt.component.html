@@ -15,7 +15,7 @@
           <th>Image</th>
           <th>Name</th>
           <th>Category</th>
-          <th>Price</th>
+          <th>Price / Sizes</th>
           <th>Stock</th>
           <th>Actions</th>
         </tr>
@@ -25,7 +25,7 @@
           <td><img [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name" width="50"></td>
           <td>{{prod.name}}</td>
           <td>{{prod.category_name}}</td>
-          <td>{{prod.price | currency}}</td>
+          <td>{{getPriceDisplay(prod)}}</td>
           <td>{{prod.inventory_count}}</td>
           <td>
             <button class="btn-edit" (click)="editProduct(prod)"><i class="bi bi-pencil"></i></button>
@@ -59,14 +59,42 @@
               <option *ngFor="let sub of availableSubCategories" [value]="sub.id">{{sub.name}}</option>
             </select>
           </div>
-          <div class="form-group">
-            <label>Price</label>
-            <input type="number" [(ngModel)]="newProduct.price" name="price" required>
+          <div class="form-group full-width">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="hasSizeVariants" name="hasSizeVariants" (change)="onSizeVariantsToggle()">
+              This item has Small &amp; Regular sizes (different prices)
+            </label>
           </div>
-          <div class="form-group">
-            <label>Costing</label>
-            <input type="number" [(ngModel)]="newProduct.costing" name="costing" required>
-          </div>
+
+          <ng-container *ngIf="!hasSizeVariants">
+            <div class="form-group">
+              <label>Price</label>
+              <input type="number" [(ngModel)]="newProduct.price" name="price" required>
+            </div>
+            <div class="form-group">
+              <label>Costing</label>
+              <input type="number" [(ngModel)]="newProduct.costing" name="costing" required>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="hasSizeVariants">
+            <div class="form-group">
+              <label>Small price</label>
+              <input type="number" [(ngModel)]="smallSize.price" name="smallPrice" required>
+            </div>
+            <div class="form-group">
+              <label>Small costing</label>
+              <input type="number" [(ngModel)]="smallSize.costing" name="smallCosting">
+            </div>
+            <div class="form-group">
+              <label>Regular price</label>
+              <input type="number" [(ngModel)]="regularSize.price" name="regularPrice" required>
+            </div>
+            <div class="form-group">
+              <label>Regular costing</label>
+              <input type="number" [(ngModel)]="regularSize.costing" name="regularCosting">
+            </div>
+          </ng-container>
           <div class="form-group">
             <label>Inventory Count</label>
             <input type="number" [(ngModel)]="newProduct.inventory_count" name="inventory_count" required>

@@ -18,25 +18,45 @@
           <p class="eyebrow">Select items</p>
           <h3>Menu catalog</h3>
         </div>
-        <span>{{filteredProducts.length}} products</span>
+        <span>{{products.length}} products</span>
       </div>
 
       <div class="product-search">
         <input type="text" [(ngModel)]="searchTerm" placeholder="Search drinks, food or category">
       </div>
 
-      <div class="products-grid">
-        <button class="product-item" type="button" *ngFor="let prod of filteredProducts" (click)="addToCart(prod)">
-          <div class="product-thumb">
-            <img *ngIf="prod.image_url" [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name">
-            <span *ngIf="!prod.image_url">{{prod.sub_category_name || 'Menu'}}</span>
-          </div>
-          <div class="info">
-            <p class="name">{{prod.name}}</p>
-            <p class="meta">{{prod.sub_category_name || prod.category_name}}</p>
-            <p class="price">{{prod.price | currency:'INR':'symbol':'1.0-0'}}</p>
-          </div>
+      <div class="category-tabs">
+        <button
+          type="button"
+          class="category-tab"
+          *ngFor="let tab of categoryTabs"
+          [class.active]="selectedCategory === tab"
+          (click)="selectCategory(tab)">
+          {{tab}}
         </button>
+      </div>
+
+      <!-- Category-wise product listing -->
+      <div class="categories-list">
+        <div class="category-section" *ngFor="let category of categories">
+          <div class="category-header">
+            <h4>{{category}}</h4>
+            <span class="badge">{{groupedAndFilteredProducts[category].length}}</span>
+          </div>
+          <div class="products-grid">
+            <button class="product-item" type="button" *ngFor="let prod of groupedAndFilteredProducts[category]" (click)="openSizeSelector(prod)">
+              <div class="product-thumb">
+                <img *ngIf="prod.image_url" [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name">
+                <span *ngIf="!prod.image_url">{{prod.sub_category_name || 'Menu'}}</span>
+              </div>
+              <div class="info">
+                <p class="name">{{prod.name}}</p>
+                <p class="meta">{{prod.sub_category_name || prod.category_name}}</p>
+                <p class="price">{{getPriceLabel(prod)}}</p>
+              </div>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -59,6 +79,7 @@
         <article class="cart-item" *ngFor="let item of cart; let i = index">
           <div>
             <strong>{{item.name}}</strong>
+            <small *ngIf="item.size">{{item.size}}</small>
             <small>{{item.unit_price | currency:'INR':'symbol':'1.0-0'}} each</small>
           </div>
           <div class="cart-actions">
@@ -97,10 +118,24 @@
     </div>
   </div>
 
+  <!-- Size Selection Modal -->
+  <div class="modal" *ngIf="showSizeModal && selectedProductForSize">
+    <div class="modal-content size-modal">
+      <h3>Select Size for {{selectedProductForSize.name}}</h3>
+      <div class="size-options">
+        <button type="button" class="size-btn" *ngFor="let sz of sortedSizes(selectedProductForSize.sizes)" (click)="addToCartWithSize(selectedProductForSize, sz.id)">
+          <span class="size-name">{{sz.size | titlecase}}</span>
+          <span class="size-price">{{sz.price | currency:'INR':'symbol':'1.0-0'}}</span>
+        </button>
+      </div>
+      <button type="button" class="btn-cancel" (click)="closeSizeModal()">Cancel</button>
+    </div>
+  </div>
+
   <!-- Hidden Invoice Template for PDF -->
   <div id="invoice-content" style="position: absolute; left: -9999px; width: 800px; padding: 40px; background: white; color: black;">
     <div style="text-align: center; margin-bottom: 30px;">
-      <img src="/assets/icons/brandLogo.svg" alt="Brew & Leaf" style="width:120px; display:block; margin:0 auto 8px">
+      <img src="/assets/img/IMG_0069.PNG" alt="Brew & Leaf" style="width:120px; display:block; margin:0 auto 8px">
       <div style="color:#4B3621; font-weight:700;">Brew & Leaf</div>
       <p>123 Coffee Lane, Brew City | +1 234 567 890</p>
       <hr>
@@ -122,7 +157,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let item of cart" style="border-bottom: 1px solid #eee;">
-          <td style="padding: 10px;">{{item.name}}</td>
+          <td style="padding: 10px;">{{item.name}} <span *ngIf="item.size">({{item.size | titlecase}})</span></td>
           <td style="text-align: center; padding: 10px;">{{item.quantity}}</td>
           <td style="text-align: right; padding: 10px;">{{item.total_price | currency}}</td>
         </tr>

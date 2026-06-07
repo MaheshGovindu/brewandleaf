@@ -35,6 +35,11 @@ router.post('/products', upload.single('image'), controller.addProduct);
 router.put('/products/:id', upload.single('image'), controller.updateProduct);
 router.delete('/products/:id', controller.deleteProduct);
 
+// Product Sizes
+router.post('/products/:id/sizes', controller.addProductSize);
+router.put('/products/:id/sizes/:sizeId', controller.updateProductSize);
+router.delete('/products/:id/sizes/:sizeId', controller.deleteProductSize);
+
 // Upload multiple images for a product (gallery)
 router.post('/products/:id/images', upload.array('images', 8), controller.uploadProductImages);
 

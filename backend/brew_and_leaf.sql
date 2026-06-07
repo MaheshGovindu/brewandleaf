@@ -47,6 +47,18 @@ CREATE TABLE IF NOT EXISTS products (
     FOREIGN KEY (sub_category_id) REFERENCES sub_categories(id) ON DELETE SET NULL
 );
 
+-- Product Sizes Table (small, regular, large with different prices)
+CREATE TABLE IF NOT EXISTS product_sizes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT NOT NULL,
+    size VARCHAR(50) NOT NULL, -- 'small', 'regular', 'large'
+    price DECIMAL(10, 2) NOT NULL,
+    costing DECIMAL(10, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_product_size (product_id, size)
+);
+
 -- Product Images Table (support multiple images per product)
 CREATE TABLE IF NOT EXISTS product_images (
     id INT AUTO_INCREMENT PRIMARY KEY,

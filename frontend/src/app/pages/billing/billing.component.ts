@@ -2,8 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
-import { Product, Order, OrderItem } from '../../models/brew-and-leaf.models';
+import { Product, Order, OrderItem, ProductSize } from '../../models/brew-and-leaf.models';
 import { jsPDF } from 'jspdf';
+
+const SIZE_ORDER = ['small', 'regular', 'large'];
 
 @Component({
   selector: 'app-billing',
@@ -19,11 +21,14 @@ export class BillingComponent implements OnInit {
   customerEmail = '';
   customerPhone = '';
   searchTerm = '';
+  selectedCategory = 'All';
   discount = 0;
-  // 'amount' = absolute value, 'percent' = percentage of subtotal
   discountType: 'amount' | 'percent' = 'amount';
   invoiceNumber = '';
   today = new Date();
+
+  showSizeModal = false;
+  selectedProductForSize: Product | null = null;
 
   constructor(public apiService: ApiService) {}
 
@@ -31,22 +36,92 @@ export class BillingComponent implements OnInit {
     this.apiService.getProducts().subscribe(data => this.products = data);
   }
 
-  get filteredProducts(): Product[] {
+  get groupedAndFilteredProducts(): { [key: string]: Product[] } {
     const search = this.searchTerm.trim().toLowerCase();
-    if (!search) {
-      return this.products;
+    let filtered = this.products;
+
+    if (search) {
+      filtered = this.products.filter(product =>
+        product.name.toLowerCase().includes(search) ||
+        (product.category_name || '').toLowerCase().includes(search) ||
+        (product.sub_category_name || '').toLowerCase().includes(search)
+      );
     }
 
-    return this.products.filter(product =>
-      product.name.toLowerCase().includes(search) ||
-      (product.category_name || '').toLowerCase().includes(search) ||
-      (product.sub_category_name || '').toLowerCase().includes(search)
-    );
+    if (this.selectedCategory !== 'All') {
+      filtered = filtered.filter(product => (product.category_name || 'Other') === this.selectedCategory);
+    }
+
+    return filtered.reduce((acc, product) => {
+      const category = product.category_name || 'Other';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(product);
+      return acc;
+    }, {} as { [key: string]: Product[] });
   }
 
-  addToCart(product: Product): void {
-    const unitPrice = Number(product.price) || 0;
-    const existing = this.cart.find(item => item.product_id === product.id);
+  get categories(): string[] {
+    return Object.keys(this.groupedAndFilteredProducts).sort();
+  }
+
+  get categoryTabs(): string[] {
+    const names = [...new Set(this.products.map(p => p.category_name || 'Other'))].sort();
+    return ['All', ...names];
+  }
+
+  selectCategory(category: string): void {
+    this.selectedCategory = category;
+  }
+
+  sortedSizes(sizes: ProductSize[] = []): ProductSize[] {
+    return [...sizes].sort((a, b) => {
+      const aIndex = SIZE_ORDER.indexOf(a.size.toLowerCase());
+      const bIndex = SIZE_ORDER.indexOf(b.size.toLowerCase());
+      return (aIndex === -1 ? 99 : aIndex) - (bIndex === -1 ? 99 : bIndex);
+    });
+  }
+
+  getPriceLabel(product: Product): string {
+    if (product.sizes && product.sizes.length > 0) {
+      const sorted = this.sortedSizes(product.sizes);
+      return sorted
+        .map(sz => `${this.sizeLabel(sz.size)} ${Number(sz.price).toFixed(0)}`)
+        .join(' · ');
+    }
+    return `₹${Number(product.price || 0).toFixed(0)}`;
+  }
+
+  sizeLabel(size: string): string {
+    const key = size.toLowerCase();
+    if (key === 'small') return 'S';
+    if (key === 'regular') return 'R';
+    if (key === 'large') return 'L';
+    return size.charAt(0).toUpperCase();
+  }
+
+  openSizeSelector(product: Product): void {
+    if (product.sizes && product.sizes.length > 0) {
+      this.selectedProductForSize = product;
+      this.showSizeModal = true;
+    } else {
+      this.addToCartWithSize(product, undefined);
+    }
+  }
+
+  addToCartWithSize(product: Product, sizeId?: number): void {
+    const selectedSize = sizeId && product.sizes
+      ? product.sizes.find(s => s.id === sizeId)
+      : undefined;
+
+    const unitPrice = selectedSize ? Number(selectedSize.price) : Number(product.price) || 0;
+    const sizeName = selectedSize?.size || 'default';
+
+    const existing = this.cart.find(item =>
+      item.product_id === product.id && (item.size || 'default') === sizeName
+    );
+
     if (existing) {
       existing.quantity++;
       existing.total_price = existing.quantity * existing.unit_price;
@@ -56,9 +131,17 @@ export class BillingComponent implements OnInit {
         name: product.name,
         quantity: 1,
         unit_price: unitPrice,
-        total_price: unitPrice
+        total_price: unitPrice,
+        size: selectedSize?.size
       });
     }
+
+    this.closeSizeModal();
+  }
+
+  closeSizeModal(): void {
+    this.showSizeModal = false;
+    this.selectedProductForSize = null;
   }
 
   changeQuantity(index: number, delta: number): void {
@@ -93,6 +176,7 @@ export class BillingComponent implements OnInit {
 
   generateInvoice(): void {
     this.invoiceNumber = this.createInvoiceNumber();
+    const whatsappWindow = this.customerPhone ? window.open('about:blank') : null;
 
     const order: Order = {
       customer_name: this.customerName,
@@ -107,10 +191,15 @@ export class BillingComponent implements OnInit {
       discount_percent: this.discountType === 'percent' ? this.discount : undefined
     };
 
-    this.apiService.createOrder(order).subscribe(res => {
+    this.apiService.createOrder(order).subscribe(async () => {
       alert('Order created! Generating PDF...');
-      this.downloadPDF();
-      this.resetBilling();
+      try {
+        await this.downloadPDF(whatsappWindow);
+      } finally {
+        this.resetBilling();
+      }
+    }, () => {
+      alert('Unable to generate invoice. Please try again.');
     });
   }
 
@@ -137,7 +226,7 @@ export class BillingComponent implements OnInit {
     window.open(whatsappUrl, '_blank');
   }
 
-  async downloadPDF(): Promise<void> {
+  async downloadPDF(whatsappWindow?: Window | null): Promise<void> {
     const data = document.getElementById('invoice-content');
     if (!data) {
       return;
@@ -151,7 +240,6 @@ export class BillingComponent implements OnInit {
     const contentDataURL = canvas.toDataURL('image/png');
     const pdf = new jsPDF('p', 'mm', 'a4');
     pdf.addImage(contentDataURL, 'PNG', 0, 0, imgWidth, imgHeight);
-    // generate blob and upload to backend so it can be shared via WhatsApp
     const blob = pdf.output('blob');
 
     try {
@@ -161,7 +249,6 @@ export class BillingComponent implements OnInit {
 
       this.apiService.uploadInvoice(form).subscribe(res => {
         const fileUrl = res && res.url ? res.url : null;
-        // trigger a local download as well
         pdf.save(filename);
 
         if (fileUrl && this.customerPhone) {
@@ -169,15 +256,17 @@ export class BillingComponent implements OnInit {
           if (phone) {
             const message = `Hello ${this.customerName || 'Customer'}, your invoice ${this.invoiceNumber} has been generated for a total of ${this.total.toFixed(2)}. You can download it here: ${fileUrl}`;
             const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-            window.open(whatsappUrl, '_blank');
+            if (whatsappWindow && !whatsappWindow.closed) {
+              whatsappWindow.location.href = whatsappUrl;
+            } else {
+              window.open(whatsappUrl, '_blank');
+            }
           }
         }
-      }, err => {
-        // fallback: still save locally
+      }, () => {
         pdf.save(filename);
       });
-    } catch (err) {
-      // ensure local save if upload fails
+    } catch {
       pdf.save(`invoice_${Date.now()}.pdf`);
     }
   }

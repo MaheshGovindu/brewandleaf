@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from, map, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Banner, Category, SubCategory, Product, Order, Stats } from '../models/brew-and-leaf.models';
+import { Banner, Category, SubCategory, Product, ProductSize, Order, Stats } from '../models/brew-and-leaf.models';
 import { StoreDataService } from './store-data.service';
 
 @Injectable({
@@ -19,7 +19,7 @@ export class ApiService {
       return 'assets/img/placeholder.png';
     }
 
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://') || imageUrl.startsWith('data:') || imageUrl.startsWith('blob:')) {
       return imageUrl;
     }
 
@@ -130,6 +130,18 @@ export class ApiService {
     return this.http.post(`${this.apiUrl}/orders`, order).pipe(
       catchError(() => of(this.storeData.saveOrder(order)))
     );
+  }
+
+  addProductSize(productId: number, size: ProductSize): Observable<ProductSize> {
+    return this.http.post<ProductSize>(`${this.apiUrl}/products/${productId}/sizes`, size);
+  }
+
+  updateProductSize(productId: number, sizeId: number, size: ProductSize): Observable<any> {
+    return this.http.put(`${this.apiUrl}/products/${productId}/sizes/${sizeId}`, size);
+  }
+
+  deleteProductSize(productId: number, sizeId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/products/${productId}/sizes/${sizeId}`);
   }
 
   uploadProductImages(productId: number, formData: FormData) {
