@@ -9,8 +9,8 @@
           <div class="brand-title">Admin Panel</div>
         </div>
       }
-      <button class="icon-chip ms-auto" type="button" aria-label="Collapse sidebar" (click)="onToggleSidebar()">
-         <img [src]="isOpen ? './../assets/icons/panel-right-close.svg' : './../assets/icons/panel-right-close.svg'" alt="close sidebar">
+      <button class="icon-chip ms-auto" type="button" aria-label="Toggle sidebar" aria-expanded="{{isOpen}}" (click)="onToggleSidebar()">
+        <img [src]="isOpen ? './../assets/icons/panel-right-close.svg' : './../assets/icons/button-burger.svg'" [alt]="isOpen ? 'Close sidebar' : 'Open sidebar'">
       </button>
     </div>
 

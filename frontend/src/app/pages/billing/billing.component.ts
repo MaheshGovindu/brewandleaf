@@ -18,7 +18,10 @@ export class BillingComponent implements OnInit {
   customerName = '';
   customerEmail = '';
   customerPhone = '';
+  searchTerm = '';
   discount = 0;
+  // 'amount' = absolute value, 'percent' = percentage of subtotal
+  discountType: 'amount' | 'percent' = 'amount';
   invoiceNumber = '';
   today = new Date();
 
@@ -26,6 +29,19 @@ export class BillingComponent implements OnInit {
 
   ngOnInit(): void {
     this.apiService.getProducts().subscribe(data => this.products = data);
+  }
+
+  get filteredProducts(): Product[] {
+    const search = this.searchTerm.trim().toLowerCase();
+    if (!search) {
+      return this.products;
+    }
+
+    return this.products.filter(product =>
+      product.name.toLowerCase().includes(search) ||
+      (product.category_name || '').toLowerCase().includes(search) ||
+      (product.sub_category_name || '').toLowerCase().includes(search)
+    );
   }
 
   addToCart(product: Product): void {
@@ -45,6 +61,16 @@ export class BillingComponent implements OnInit {
     }
   }
 
+  changeQuantity(index: number, delta: number): void {
+    const item = this.cart[index];
+    if (!item) {
+      return;
+    }
+
+    item.quantity = Math.max(1, item.quantity + delta);
+    item.total_price = item.quantity * item.unit_price;
+  }
+
   removeFromCart(index: number): void {
     this.cart.splice(index, 1);
   }
@@ -54,7 +80,15 @@ export class BillingComponent implements OnInit {
   }
 
   get total(): number {
-    return this.subtotal - this.discount;
+    return Math.max(0, this.subtotal - this.discountAmount);
+  }
+
+  get discountAmount(): number {
+    const d = Number(this.discount) || 0;
+    if (this.discountType === 'percent') {
+      return +(this.subtotal * (d / 100));
+    }
+    return d;
   }
 
   generateInvoice(): void {
@@ -67,14 +101,15 @@ export class BillingComponent implements OnInit {
       invoice_number: this.invoiceNumber,
       items: this.cart,
       total_amount: this.subtotal,
-      discount_applied: this.discount,
-      final_amount: this.total
+      discount_applied: this.discountAmount,
+      final_amount: this.total,
+      discount_type: this.discountType,
+      discount_percent: this.discountType === 'percent' ? this.discount : undefined
     };
 
     this.apiService.createOrder(order).subscribe(res => {
       alert('Order created! Generating PDF...');
       this.downloadPDF();
-      this.openWhatsApp();
       this.resetBilling();
     });
   }

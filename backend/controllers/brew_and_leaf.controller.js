@@ -101,18 +101,42 @@ exports.getProducts = (req, res) => {
     `;
     db.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
+        // Attach images for each product
+        const productIds = results.map(r => r.id);
+        if (productIds.length === 0) return res.json([]);
+
+        db.query('SELECT * FROM product_images WHERE product_id IN (?)', [productIds], (err, imgs) => {
+            if (err) return res.status(500).json({ error: err.message });
+            const imagesByProduct = imgs.reduce((acc, row) => {
+                acc[row.product_id] = acc[row.product_id] || [];
+                acc[row.product_id].push(row.image_url);
+                return acc;
+            }, {});
+
+            const out = results.map(p => ({ ...p, images: imagesByProduct[p.id] || [] }));
+            res.json(out);
+        });
     });
 };
 
 exports.addProduct = (req, res) => {
     const { category_id, sub_category_id, name, description, price, costing, discount, inventory_count, aspect_ratio } = req.body;
     const image_url = req.file ? `/uploads/${req.file.filename}` : null;
-    
+
     const sql = 'INSERT INTO products (category_id, sub_category_id, name, description, price, costing, discount, inventory_count, image_url, aspect_ratio) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
     db.query(sql, [category_id, sub_category_id, name, description, price, costing, discount, inventory_count, image_url, aspect_ratio], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ id: result.insertId, name, price });
+        const productId = result.insertId;
+        // If additional images were uploaded via 'images' field, save them
+        if (req.files && req.files.length > 0) {
+            const imgValues = req.files.map(f => [productId, `/uploads/${f.filename}`]);
+            db.query('INSERT INTO product_images (product_id, image_url) VALUES ?', [imgValues], (err2) => {
+                if (err2) return res.status(500).json({ error: err2.message });
+                return res.json({ id: productId, name, price });
+            });
+        } else {
+            res.json({ id: productId, name, price });
+        }
     });
 };
 
@@ -139,6 +163,34 @@ exports.deleteProduct = (req, res) => {
     db.query('DELETE FROM products WHERE id = ?', [req.params.id], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: 'Product deleted' });
+    });
+};
+
+// Get single product by id with images
+exports.getProductById = (req, res) => {
+    const id = req.params.id;
+    const sql = `SELECT p.*, c.name as category_name, s.name as sub_category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id LEFT JOIN sub_categories s ON p.sub_category_id = s.id WHERE p.id = ?`;
+    db.query(sql, [id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length === 0) return res.status(404).json({ message: 'Product not found' });
+
+        db.query('SELECT image_url FROM product_images WHERE product_id = ?', [id], (err2, imgs) => {
+            if (err2) return res.status(500).json({ error: err2.message });
+            const images = imgs.map(r => r.image_url);
+            res.json({ ...results[0], images });
+        });
+    });
+};
+
+// Upload multiple images for a product
+exports.uploadProductImages = (req, res) => {
+    const id = req.params.id;
+    if (!req.files || req.files.length === 0) return res.status(400).json({ error: 'No files uploaded' });
+
+    const imgValues = req.files.map(f => [id, `/uploads/${f.filename}`]);
+    db.query('INSERT INTO product_images (product_id, image_url) VALUES ?', [imgValues], (err, result) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: 'Images uploaded', count: req.files.length });
     });
 };
 

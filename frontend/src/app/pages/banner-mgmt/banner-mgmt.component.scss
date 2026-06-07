@@ -1,0 +1,296 @@
+.banner-page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.page-hero,
+.table-shell,
+.banner-card,
+.modal-card {
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(90, 59, 35, 0.1);
+  border-radius: 28px;
+  box-shadow: 0 24px 80px rgba(75, 54, 33, 0.1);
+}
+
+.page-hero {
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.72rem;
+  color: #9b6b3f;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  color: var(--color-primary);
+  font-family: var(--font-heading);
+}
+
+.subtitle {
+  margin: 0.75rem 0 0;
+  max-width: 650px;
+  color: var(--color-text-soft);
+}
+
+.btn-primary,
+.ghost-btn,
+.danger-btn,
+.icon-btn {
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-primary {
+  padding: 0.95rem 1.4rem;
+  background: linear-gradient(135deg, #4b3621, #8b5e34);
+  color: white;
+}
+
+.ghost-btn,
+.danger-btn {
+  padding: 0.7rem 1rem;
+}
+
+.ghost-btn {
+  background: rgba(75, 54, 33, 0.08);
+  color: var(--color-primary);
+}
+
+.danger-btn {
+  background: rgba(175, 35, 35, 0.12);
+  color: #9e2323;
+}
+
+.banner-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+.banner-card {
+  overflow: hidden;
+}
+
+.banner-preview {
+  height: 220px;
+  background: radial-gradient(circle at top left, rgba(255, 230, 199, 0.9), rgba(75, 54, 33, 0.95));
+}
+
+.banner-preview img,
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banner-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 2rem;
+  font-family: var(--font-heading);
+}
+
+.banner-copy {
+  padding: 1.4rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.banner-copy p {
+  margin: 0;
+  color: var(--color-text-soft);
+}
+
+.banner-meta,
+.table-actions,
+.modal-actions,
+.form-row,
+.toggle-row,
+.table-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.banner-meta {
+  justify-content: space-between;
+}
+
+.status,
+.chip {
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.status {
+  background: rgba(0, 112, 74, 0.12);
+  color: #00704a;
+}
+
+.status.inactive {
+  background: rgba(75, 54, 33, 0.08);
+  color: var(--color-text-soft);
+}
+
+.chip {
+  background: rgba(255, 223, 186, 0.45);
+  color: #8b5e34;
+}
+
+.table-shell {
+  padding: 1.5rem;
+}
+
+.table-header {
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.table-header p {
+  margin: 0.4rem 0 0;
+  color: var(--color-text-soft);
+}
+
+.table-wrap {
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(75, 54, 33, 0.08);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
+}
+
+.action-cell {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.modal-shell {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 18, 12, 0.45);
+  backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  z-index: 2000;
+}
+
+.modal-card {
+  width: min(760px, 100%);
+  padding: 1.6rem;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  background: rgba(75, 54, 33, 0.08);
+  color: var(--color-primary);
+  font-size: 1.5rem;
+}
+
+.banner-form {
+  display: grid;
+  gap: 1rem;
+}
+
+label {
+  display: grid;
+  gap: 0.45rem;
+}
+
+label span {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(75, 54, 33, 0.12);
+  background: rgba(255, 249, 243, 0.85);
+}
+
+textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-row {
+  align-items: stretch;
+}
+
+.form-row label {
+  flex: 1;
+}
+
+.toggle-row {
+  justify-content: flex-start;
+}
+
+.toggle-row input {
+  width: 18px;
+  height: 18px;
+}
+
+.image-preview {
+  height: 220px;
+  border-radius: 24px;
+  overflow: hidden;
+  background: rgba(75, 54, 33, 0.08);
+}
+
+@media (max-width: 768px) {
+  .page-hero,
+  .form-row,
+  .table-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .action-cell,
+  .table-actions {
+    flex-wrap: wrap;
+  }
+}

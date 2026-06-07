@@ -1,67 +1,107 @@
-<div class="billing-container">
-  <div class="selection-area">
-    <h3>Select Items</h3>
-    <div class="product-search">
-      <input type="text" placeholder="Search products...">
+<div class="billing-page">
+  <section class="billing-hero">
+    <div>
+      <p class="eyebrow">Billing desk</p>
+      <h1>Fast modern POS billing</h1>
+      <p>Create invoices, apply amount or percentage discounts, and send invoice links on WhatsApp.</p>
     </div>
-    <div class="products-grid">
-      <div class="product-item" *ngFor="let prod of products" (click)="addToCart(prod)">
-        <img [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name">
-        <div class="info">
-          <p class="name">{{prod.name}}</p>
-          <p class="price">{{prod.price | currency}}</p>
+    <div class="hero-card">
+      <strong>{{cart.length}}</strong>
+      <span>items in order</span>
+    </div>
+  </section>
+
+  <div class="billing-container">
+    <div class="selection-area">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">Select items</p>
+          <h3>Menu catalog</h3>
         </div>
+        <span>{{filteredProducts.length}} products</span>
+      </div>
+
+      <div class="product-search">
+        <input type="text" [(ngModel)]="searchTerm" placeholder="Search drinks, food or category">
+      </div>
+
+      <div class="products-grid">
+        <button class="product-item" type="button" *ngFor="let prod of filteredProducts" (click)="addToCart(prod)">
+          <div class="product-thumb">
+            <img *ngIf="prod.image_url" [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name">
+            <span *ngIf="!prod.image_url">{{prod.sub_category_name || 'Menu'}}</span>
+          </div>
+          <div class="info">
+            <p class="name">{{prod.name}}</p>
+            <p class="meta">{{prod.sub_category_name || prod.category_name}}</p>
+            <p class="price">{{prod.price | currency:'INR':'symbol':'1.0-0'}}</p>
+          </div>
+        </button>
       </div>
     </div>
-  </div>
 
-  <div class="cart-area">
-    <div class="cart-header">
-      <h3>Current Order</h3>
-      <span class="item-count">{{cart.length}} items</span>
-    </div>
-    <div class="customer-info">
-      <input type="text" [(ngModel)]="customerName" placeholder="Customer Name">
-      <input type="tel" name="phone" [(ngModel)]="customerPhone" placeholder="WhatsApp Number">
-      <input type="email" [(ngModel)]="customerEmail" placeholder="Customer Email">
-    </div>
-
-    <div class="cart-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Qty</th>
-            <th>Price</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of cart; let i = index">
-            <td>{{item.name}}</td>
-            <td>{{item.quantity}}</td>
-            <td>{{item.total_price | currency}}</td>
-            <td><button (click)="removeFromCart(i)">&times;</button></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="cart-summary">
-      <div class="row"><span>Subtotal:</span> <span>{{subtotal | currency}}</span></div>
-      <div class="row">
-        <span>Discount:</span> 
-        <input type="number" [(ngModel)]="discount" style="width: 60px">
+    <div class="cart-area">
+      <div class="cart-header">
+        <div>
+          <p class="eyebrow">Current order</p>
+          <h3>Invoice builder</h3>
+        </div>
+        <span class="item-count">{{cart.length}} items</span>
       </div>
-      <div class="row total"><span>Total:</span> <span>{{total | currency}}</span></div>
-      <button class="btn-generate" [disabled]="cart.length === 0" (click)="generateInvoice()">Generate & Print Invoice</button>
+
+      <div class="customer-info">
+        <input type="text" [(ngModel)]="customerName" placeholder="Customer Name">
+        <input type="tel" name="phone" [(ngModel)]="customerPhone" placeholder="WhatsApp Number">
+        <input type="email" [(ngModel)]="customerEmail" placeholder="Customer Email">
+      </div>
+
+      <div class="cart-list" *ngIf="cart.length; else emptyCart">
+        <article class="cart-item" *ngFor="let item of cart; let i = index">
+          <div>
+            <strong>{{item.name}}</strong>
+            <small>{{item.unit_price | currency:'INR':'symbol':'1.0-0'}} each</small>
+          </div>
+          <div class="cart-actions">
+            <button type="button" (click)="changeQuantity(i, -1)">-</button>
+            <span>{{item.quantity}}</span>
+            <button type="button" (click)="changeQuantity(i, 1)">+</button>
+            <strong>{{item.total_price | currency:'INR':'symbol':'1.0-0'}}</strong>
+            <button type="button" class="remove-btn" (click)="removeFromCart(i)">×</button>
+          </div>
+        </article>
+      </div>
+
+      <ng-template #emptyCart>
+        <div class="empty-state">
+          <i class="bi bi-bag"></i>
+          <p>Select products from the left to start billing.</p>
+        </div>
+      </ng-template>
+
+      <div class="cart-summary">
+        <div class="row"><span>Subtotal</span> <span>{{subtotal | currency:'INR':'symbol':'1.0-0'}}</span></div>
+        <div class="row discount-row">
+          <span>Discount</span>
+          <div class="discount-controls">
+            <select [(ngModel)]="discountType">
+              <option value="amount">Amount</option>
+              <option value="percent">Percent</option>
+            </select>
+            <input type="number" [(ngModel)]="discount">
+            <span *ngIf="discountType === 'percent'">%</span>
+          </div>
+        </div>
+        <div class="row total"><span>Total</span> <span>{{total | currency:'INR':'symbol':'1.0-0'}}</span></div>
+        <button class="btn-generate" [disabled]="cart.length === 0" (click)="generateInvoice()">Generate invoice</button>
+      </div>
     </div>
   </div>
 
   <!-- Hidden Invoice Template for PDF -->
   <div id="invoice-content" style="position: absolute; left: -9999px; width: 800px; padding: 40px; background: white; color: black;">
     <div style="text-align: center; margin-bottom: 30px;">
-      <h1 style="color: #4B3621; margin: 0;">Brew & Leaf</h1>
+      <img src="/assets/icons/brandLogo.svg" alt="Brew & Leaf" style="width:120px; display:block; margin:0 auto 8px">
+      <div style="color:#4B3621; font-weight:700;">Brew & Leaf</div>
       <p>123 Coffee Lane, Brew City | +1 234 567 890</p>
       <hr>
       <h2>INVOICE</h2>
@@ -90,7 +130,7 @@
     </table>
     <div style="text-align: right; font-size: 1.2rem;">
       <p>Subtotal: {{subtotal | currency}}</p>
-      <p>Discount: -{{discount | currency}}</p>
+      <p>Discount: -{{discountAmount | currency}} <span *ngIf="discountType === 'percent'">({{discount}}%)</span></p>
       <p style="font-weight: bold; color: #4B3621; font-size: 1.5rem;">Total: {{total | currency}}</p>
     </div>
     <div style="margin-top: 50px; text-align: center; font-style: italic;">

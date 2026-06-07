@@ -27,6 +27,7 @@ export class ProductManagementComponent implements OnInit {
   };
   
   selectedFile: File | null = null;
+  selectedFiles: File[] = [];
   showModal = false;
   isEditing = false;
 
@@ -42,8 +43,23 @@ export class ProductManagementComponent implements OnInit {
     this.apiService.getSubCategories().subscribe(data => this.subCategories = data);
   }
 
+  get availableSubCategories(): SubCategory[] {
+    if (!this.newProduct.category_id) {
+      return this.subCategories;
+    }
+
+    return this.subCategories.filter(subCategory => subCategory.category_id === this.newProduct.category_id);
+  }
+
   onFileSelected(event: any): void {
-    this.selectedFile = event.target.files[0];
+    const files: FileList = event.target.files;
+    if (files && files.length) {
+      this.selectedFiles = Array.from(files);
+      this.selectedFile = this.selectedFiles[0];
+    } else {
+      this.selectedFiles = [];
+      this.selectedFile = null;
+    }
   }
 
   saveProduct(): void {
@@ -57,15 +73,26 @@ export class ProductManagementComponent implements OnInit {
       formData.append('image', this.selectedFile);
     }
 
+
     if (this.isEditing && this.newProduct.id) {
         this.apiService.updateProduct(this.newProduct.id, formData).subscribe(() => {
             this.loadData();
             this.closeModal();
         });
     } else {
-        this.apiService.addProduct(formData).subscribe(() => {
-            this.loadData();
-            this.closeModal();
+        this.apiService.addProduct(formData).subscribe((res: any) => {
+            const id = res && res.id ? res.id : null;
+            if (id && this.selectedFiles && this.selectedFiles.length > 0) {
+              const imgs = new FormData();
+              this.selectedFiles.forEach(f => imgs.append('images', f));
+              this.apiService.uploadProductImages(id, imgs).subscribe(() => {
+                this.loadData();
+                this.closeModal();
+              }, () => { this.loadData(); this.closeModal(); });
+            } else {
+              this.loadData();
+              this.closeModal();
+            }
         });
     }
   }
@@ -99,5 +126,6 @@ export class ProductManagementComponent implements OnInit {
       aspect_ratio: '1:1'
     };
     this.selectedFile = null;
+    this.selectedFiles = [];
   }
 }

@@ -1,8 +1,12 @@
 <div class="mgmt-container">
-  <div class="header">
-    <h2>Manage Products</h2>
-    <button class="btn-add" (click)="showModal = true">Add New Product</button>
-  </div>
+  <section class="page-header">
+    <div>
+      <p class="eyebrow">Menu products</p>
+      <h2>Manage products</h2>
+      <p class="subtext">Add all drinks, food and dessert items that should appear across billing, product detail and homepage menu sections.</p>
+    </div>
+    <button class="btn-add" (click)="showModal = true">Add product</button>
+  </section>
 
   <div class="table-container">
     <table>
@@ -35,7 +39,7 @@
   <!-- Add/Edit Product Modal -->
   <div class="modal" *ngIf="showModal">
     <div class="modal-content">
-      <h3>{{isEditing ? 'Edit' : 'Add New'}} Product</h3>
+      <h3>{{isEditing ? 'Edit' : 'Add new'}} product</h3>
       <form (ngSubmit)="saveProduct()">
         <div class="form-grid">
           <div class="form-group">
@@ -52,7 +56,7 @@
             <label>Sub-Category</label>
             <select [(ngModel)]="newProduct.sub_category_id" name="sub_category_id">
               <option [value]="null">None</option>
-              <option *ngFor="let sub of subCategories" [value]="sub.id">{{sub.name}}</option>
+              <option *ngFor="let sub of availableSubCategories" [value]="sub.id">{{sub.name}}</option>
             </select>
           </div>
           <div class="form-group">
@@ -68,8 +72,12 @@
             <input type="number" [(ngModel)]="newProduct.inventory_count" name="inventory_count" required>
           </div>
           <div class="form-group">
-            <label>Image</label>
-            <input type="file" (change)="onFileSelected($event)">
+            <label>Description</label>
+            <textarea [(ngModel)]="newProduct.description" name="description"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Image (main) and Gallery (select multiple)</label>
+            <input type="file" (change)="onFileSelected($event)" multiple>
           </div>
         </div>
         <div class="modal-actions">

@@ -1,0 +1,79 @@
+<div class="product-page" *ngIf="product; else loadingState">
+  <section class="product-hero">
+    <button type="button" class="back-btn" (click)="goBack()">← Back to menu</button>
+    <div class="hero-grid">
+      <div class="gallery-card">
+        <div class="carousel">
+          <button class="nav prev" type="button" (click)="prev()" *ngIf="images.length > 1">‹</button>
+          <div class="slide">
+            <img *ngIf="images.length" [src]="api.getFullImageUrl(images[activeIndex])" [alt]="product.name">
+            <div class="fallback" *ngIf="!images.length">{{product.sub_category_name || product.category_name}}</div>
+          </div>
+          <button class="nav next" type="button" (click)="next()" *ngIf="images.length > 1">›</button>
+        </div>
+        <div class="thumbs" *ngIf="images.length > 1">
+          <img *ngFor="let img of images; let i = index" [src]="api.getFullImageUrl(img)" [class.active]="i === activeIndex" (click)="activeIndex = i">
+        </div>
+      </div>
+
+      <div class="details-card">
+        <div class="badge-row">
+          <span>{{product.category_name}}</span>
+          <span>{{product.sub_category_name}}</span>
+        </div>
+        <h1>{{product.name}}</h1>
+        <p class="price">{{product.price | currency:'INR':'symbol':'1.0-0'}}</p>
+        <p class="desc">{{product.description}}</p>
+
+        <div class="detail-points">
+          <article>
+            <strong>{{product.inventory_count}}</strong>
+            <span>stock units</span>
+          </article>
+          <article>
+            <strong>{{product.discount || 0}}%</strong>
+            <span>offer slot</span>
+          </article>
+          <article>
+            <strong>{{product.aspect_ratio || '1:1'}}</strong>
+            <span>image ratio</span>
+          </article>
+        </div>
+
+        <div class="detail-actions">
+          <a routerLink="/admin/billing">Bill this item</a>
+          <button type="button" (click)="goBack()">Continue browsing</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="related-section" *ngIf="relatedProducts.length">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">More in this menu</p>
+        <h2>Related picks</h2>
+      </div>
+    </div>
+
+    <div class="related-grid">
+      <a class="related-card" *ngFor="let item of relatedProducts" [routerLink]="['/product', item.id]">
+        <div class="related-media">
+          <img *ngIf="item.image_url" [src]="api.getFullImageUrl(item.image_url)" [alt]="item.name">
+          <span *ngIf="!item.image_url">{{item.sub_category_name}}</span>
+        </div>
+        <div class="related-body">
+          <h3>{{item.name}}</h3>
+          <p>{{item.description}}</p>
+          <strong>{{item.price | currency:'INR':'symbol':'1.0-0'}}</strong>
+        </div>
+      </a>
+    </div>
+  </section>
+</div>
+
+<ng-template #loadingState>
+  <div class="loading-state">
+    <p>Loading product...</p>
+  </div>
+</ng-template>

@@ -1,41 +1,63 @@
-<header class="content-header">
-  <h1>Dashboard Overview</h1>
-</header>
+<section class="dashboard-hero">
+  <div>
+    <p class="eyebrow">Dashboard overview</p>
+    <h2>Store performance snapshot</h2>
+    <p>Track revenue, orders, product count and inventory while you manage banners and menu collections from admin.</p>
+  </div>
+  <div class="dashboard-badge">
+    <span>Live metrics</span>
+  </div>
+</section>
 
-<div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-icon revenue"><i class="bi bi-currency-dollar"></i></div>
+<section class="stats-grid">
+  <article class="stat-card">
+    <div class="stat-icon revenue"><i class="bi bi-currency-rupee"></i></div>
     <div class="stat-info">
       <p>Total Revenue</p>
-      <h3>{{stats.total_revenue | currency}}</h3>
+      <h3>{{stats.total_revenue | currency:'INR':'symbol':'1.0-0'}}</h3>
     </div>
-  </div>
-  <div class="stat-card">
+  </article>
+  <article class="stat-card">
     <div class="stat-icon orders"><i class="bi bi-cart-check"></i></div>
     <div class="stat-info">
       <p>Total Orders</p>
       <h3>{{stats.total_orders}}</h3>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon products"><i class="bi bi-cup-hot"></i></div>
+  </article>
+  <article class="stat-card">
+    <div class="stat-icon products"><i class="bi bi-cup-straw"></i></div>
     <div class="stat-info">
       <p>Products</p>
       <h3>{{stats.total_products}}</h3>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon inventory"><i class="bi bi-stack"></i></div>
+  </article>
+  <article class="stat-card">
+    <div class="stat-icon inventory"><i class="bi bi-box-seam"></i></div>
     <div class="stat-info">
-      <p>Inventory Items</p>
+      <p>Inventory Units</p>
       <h3>{{stats.total_inventory}}</h3>
     </div>
-  </div>
-</div>
+  </article>
+</section>
 
-<div class="dashboard-charts">
+<section class="dashboard-layout">
   <div class="chart-card">
-    <h3>Daily Revenue Trend</h3>
+    <div class="card-head">
+      <div>
+        <p class="eyebrow">Analytics</p>
+        <h3>Daily revenue trend</h3>
+      </div>
+    </div>
     <canvas #salesChart></canvas>
   </div>
-</div>
+
+  <div class="insight-card">
+    <p class="eyebrow">What this setup gives you</p>
+    <h3>Admin-first content control</h3>
+    <ul>
+      <li>Homepage banners managed from the new banner studio.</li>
+      <li>Menu groups powered by categories, sub-categories and products.</li>
+      <li>Billing and product pages styled consistently with the new brand system.</li>
+    </ul>
+  </div>
+</section>

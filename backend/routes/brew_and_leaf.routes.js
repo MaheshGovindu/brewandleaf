@@ -30,9 +30,13 @@ router.delete('/sub-categories/:id', controller.deleteSubCategory);
 
 // Products
 router.get('/products', controller.getProducts);
+router.get('/products/:id', controller.getProductById);
 router.post('/products', upload.single('image'), controller.addProduct);
 router.put('/products/:id', upload.single('image'), controller.updateProduct);
 router.delete('/products/:id', controller.deleteProduct);
+
+// Upload multiple images for a product (gallery)
+router.post('/products/:id/images', upload.array('images', 8), controller.uploadProductImages);
 
 // Orders & Billing
 router.post('/orders', controller.createOrder);
