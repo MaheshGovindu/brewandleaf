@@ -106,3 +106,45 @@ CREATE TABLE IF NOT EXISTS daily_stats (
 -- Run: node setup-admin.js to set admin password to 'admin@2026'
 INSERT INTO users (username, email, password, role) 
 VALUES ('Admin', 'admin@brewandleaf.com', 'temp_placeholder', 'admin');
+
+
+-- Testimonials Table
+CREATE TABLE IF NOT EXISTS testimonials (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    role VARCHAR(255),
+    text TEXT NOT NULL,
+    image_url VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Gallery Table
+CREATE TABLE IF NOT EXISTS gallery (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255),
+    image_url VARCHAR(255) NOT NULL,
+    category VARCHAR(100), -- e.g., 'Ambiance', 'Coffee', 'Events'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Settings Table (for general site info)
+CREATE TABLE IF NOT EXISTS settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    setting_key VARCHAR(100) UNIQUE NOT NULL,
+    setting_value TEXT,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Insert initial settings
+INSERT IGNORE INTO settings (setting_key, setting_value) VALUES 
+('about_title', 'WE MAKE ORGANIC, TASTEFUL AND DELICIOUS COFFEE'),
+('about_description', 'Brew & Leaf is a modern single-page Webflow template crafted for cafes, coffee shops, and local eateries looking to build an inviting online presence.'),
+('contact_phone', '+92 342 6124509'),
+('contact_address', 'Brew & Leaf, 123 Coffee Street, Bean Town, CA 90210'),
+('opening_hours', 'Mon - Fri: 08:00 - 22:00\nSat: 09:00 - 23:00\nSun: 10:00 - 21:00');
+
+-- Insert initial testimonials
+INSERT IGNORE INTO testimonials (name, role, text, image_url) VALUES 
+('Nitin Badugu', 'Coffee Enthusiast', 'The best coffee in town! The atmosphere is cozy and the staff is incredibly friendly.', '/uploads/1781069606151.jpg'),
+('Shweta Badugu', 'Local Resident', 'Amazing ambiance and even better coffee. Their special blends are a must-try.', '/uploads/1781069677401.jpg');

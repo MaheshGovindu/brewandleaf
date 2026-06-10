@@ -1,0 +1,379 @@
+.homepage2-container {
+  font-family: 'TT Fors Trial Regular', 'Montserrat', sans-serif;
+  overflow-x: hidden;
+  color: #1a1a1a;
+
+  // Colors
+  $primary-bg: #f5f1ea;
+  $dark-bg: #111111;
+  $accent-color: #c9a45c;
+  $text-muted: #6c757d;
+
+  // Global Styles
+  .section-title {
+    font-weight: 800;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    font-size: 2.5rem;
+  }
+
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  // Navbar
+  .navbar {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    .navbar-brand {
+      font-size: 1.4rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: 900;
+    }
+
+    .nav-link {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      margin: 0 12px;
+      color: #333;
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: $accent-color;
+        transition: width 0.3s ease;
+      }
+
+      &:hover::after {
+        width: 100%;
+      }
+    }
+  }
+
+  // Hero Section
+  .hero-section {
+    min-height: 100vh;
+    background-color: $primary-bg;
+    padding-top: 100px;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: 'BREW&LEAF';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 25vw;
+      font-weight: 900;
+      color: rgba(0, 0, 0, 0.04);
+      z-index: 0;
+      pointer-events: none;
+      letter-spacing: -10px;
+    }
+
+    .hero-content {
+      z-index: 1;
+      
+      .main-title {
+        font-weight: 900;
+        letter-spacing: -5px;
+        line-height: 0.85;
+        margin-bottom: 20px;
+        font-size: 10vw;
+      }
+
+      .hero-subtitle {
+        p {
+          font-size: 1.2rem;
+          letter-spacing: 8px;
+          color: $text-muted;
+          font-weight: 500;
+        }
+      }
+    }
+
+    .hero-image-container {
+      position: relative;
+      z-index: 2;
+      
+      .hero-image {
+        max-width: 90%;
+        filter: drop-shadow(30px 50px 80px rgba(0, 0, 0, 0.15));
+        transform-origin: center center;
+      }
+    }
+  }
+
+  // Coffee Types
+  .coffee-types {
+    .icon-circle {
+      width: 70px;
+      height: 70px;
+      background: $primary-bg;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: $accent-color;
+      transition: all 0.3s ease;
+    }
+
+    .coffee-card {
+      background: white;
+      border-radius: 20px;
+      transition: all 0.4s ease;
+
+      &:hover {
+        transform: translateY(-15px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.08) !important;
+
+        .icon-circle {
+          background: $accent-color;
+          color: white;
+        }
+      }
+
+      h4 {
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+      }
+
+      p {
+        font-size: 0.9rem;
+        line-height: 1.7;
+      }
+    }
+  }
+
+  // About Us
+  .about-us {
+    .main-about-img {
+      width: 100%;
+      height: 500px;
+      object-fit: cover;
+    }
+
+    .floating-badge {
+      position: absolute;
+      bottom: -30px;
+      right: 30px;
+      min-width: 150px;
+      text-align: center;
+      border-radius: 15px;
+
+      h3 {
+        color: $accent-color;
+        font-weight: 800;
+      }
+    }
+  }
+
+  // Menu Highlights
+  .menu-highlights {
+    background-color: #0a0a0a !important;
+
+    .menu-category-title {
+      font-weight: 700;
+      color: $accent-color;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 1rem;
+      position: relative;
+      padding-left: 20px;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 10px;
+        height: 10px;
+        background: $accent-color;
+        border-radius: 50%;
+      }
+    }
+
+    .menu-item {
+      .menu-item-info {
+        span {
+          font-weight: 600;
+          letter-spacing: 0.5px;
+        }
+      }
+      
+      .menu-item-price {
+        font-weight: 700;
+        color: $accent-color;
+      }
+    }
+  }
+
+  // Testimonials
+  .testimonial-card {
+    border-radius: 30px;
+    
+    .lead {
+      font-size: 1.3rem;
+      line-height: 1.8;
+      font-style: italic;
+      color: #444;
+    }
+
+    .quote-icon {
+      color: $accent-color;
+    }
+  }
+
+  // Moments Carousel
+  .moments-carousel {
+    .carousel-track {
+      width: max-content;
+      
+      .carousel-item-custom {
+        width: 350px;
+        height: 450px;
+        flex-shrink: 0;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.5s ease;
+
+          &:hover {
+            transform: scale(1.05);
+          }
+        }
+      }
+    }
+  }
+
+  // Team
+  .team-section {
+    .team-img-wrapper {
+      height: 400px;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all 0.5s ease;
+      }
+    }
+
+    .grayscale-hover {
+      filter: grayscale(100%);
+      
+      &:hover {
+        filter: grayscale(0%);
+        transform: scale(1.03);
+      }
+    }
+  }
+
+  // FAQ
+  .faq-accordion {
+    .faq-item {
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0, 0, 0, 0.03);
+
+      .faq-header {
+        transition: background 0.3s ease;
+        
+        &:hover {
+          background: rgba(201, 164, 92, 0.05);
+        }
+
+        i {
+          color: $accent-color;
+          font-size: 1.2rem;
+        }
+      }
+    }
+  }
+
+  // Order Section
+  .order-section {
+    .contact-icon-box {
+      width: 50px;
+      height: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      color: $accent-color;
+    }
+
+    .order-form {
+      .form-control, .form-select {
+        &:focus {
+          background: white !important;
+          box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+      }
+    }
+  }
+
+  // Footer
+  .footer {
+    .fw-black {
+      font-weight: 900;
+    }
+
+    .tracking-tighter {
+      letter-spacing: -8px;
+    }
+
+    .social-btn {
+      width: 45px;
+      height: 45px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: $accent-color;
+        transform: translateY(-5px);
+      }
+    }
+  }
+
+  // Animations
+  .animate-on-scroll {
+    opacity: 1; // Default to visible to prevent blank sections if JS fails
+    will-change: transform, opacity;
+  }
+}
+
+// Media Queries
+@media (max-width: 991px) {
+  .homepage2-container {
+    .section-title {
+      font-size: 2rem;
+    }
+
+    .hero-section {
+      .main-title {
+        font-size: 15vw;
+      }
+    }
+  }
+}

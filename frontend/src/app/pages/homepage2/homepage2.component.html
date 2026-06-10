@@ -1,0 +1,353 @@
+<div class="homepage2-container">
+  <!-- Navbar  https://mochar.webflow.io/ -->
+  <nav class="navbar navbar-expand-lg navbar-light fixed-top px-4 py-3 bg-white">
+    <a class="navbar-brand font-weight-bold" href="#">Brew & Leaf</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav mx-auto">
+        <li class="nav-item"><a class="nav-link" href="#home">HOME</a></li>
+        <li class="nav-item"><a class="nav-link" href="#about">ABOUT</a></li>
+        <li class="nav-item"><a class="nav-link" href="#menu">MENU</a></li>
+        <li class="nav-item"><a class="nav-link" href="#gallery">GALLERY</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact">CONTACT</a></li>
+      </ul>
+      <button class="btn btn-dark px-4 py-2 rounded-pill">GET STARTED</button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero-section d-flex align-items-center">
+    <div class="container-fluid px-5">
+      <div class="row align-items-center">
+        <div class="col-lg-6 hero-content">
+          <h1 class="display-1 main-title">Brew & leaf</h1>
+          <div class="hero-subtitle mb-4">
+            <p>A BREWING COFFEE SHOP</p>
+          </div>
+          <button class="btn btn-dark btn-lg rounded-pill px-5 py-3">GET STARTED NOW</button>
+        </div>
+        <div class="col-lg-6 hero-image-container text-center">
+          <img src="assets/img/BannerGlass.webp" alt="Coffee Cup" class="hero-image img-fluid">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Types of Coffee -->
+  <section class="coffee-types py-5 bg-light">
+    <div class="container text-center py-5">
+      <h6 class="text-uppercase mb-3 animate-on-scroll text-muted">BY OUR CHEFS</h6>
+      <h2 class="mb-5 animate-on-scroll section-title">TYPE OF COFFEE'S</h2>
+      <div class="row">
+        <div class="col-md-4 mb-4 animate-on-scroll">
+          <div class="coffee-card p-5 border-0 shadow-sm">
+            <div class="icon-circle mb-4 mx-auto"><i class="bi bi-cup-hot"></i></div>
+            <h4>AROMA RICH</h4>
+            <p>Experience the deep, rich aroma of our freshly roasted beans from high altitudes.</p>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4 animate-on-scroll">
+          <div class="coffee-card p-5 border-0 shadow-sm">
+            <div class="icon-circle mb-4 mx-auto"><i class="bi bi-tree"></i></div>
+            <h4>BY ORGANIC BEAN</h4>
+            <p>Our beans are 100% organic and sourced from sustainable, fair-trade farms.</p>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4 animate-on-scroll">
+          <div class="coffee-card p-5 border-0 shadow-sm">
+            <div class="icon-circle mb-4 mx-auto"><i class="bi bi-stars"></i></div>
+            <h4>SAVOUR RICH</h4>
+            <p>Every sip is a journey through complex, satisfying, and balanced flavors.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Us -->
+  <section id="about" class="about-us py-5">
+    <div class="container py-5">
+      <div class="row align-items-center">
+        <div class="col-lg-6 animate-on-scroll">
+          <h6 class="text-uppercase mb-3 text-muted">BY OUR HISTORY</h6>
+          <h2 class="mb-4 section-title">{{ settings.about_title || 'WE MAKE ORGANIC, TASTEFUL AND DELICIOUS COFFEE' }}</h2>
+          <p class="mb-4 text-muted lh-lg">{{ settings.about_description || 'Brew & Leaf is a modern single-page Webflow template crafted for cafes, coffee shops, and local eateries looking to build an inviting online presence.' }}</p>
+          <button class="btn btn-dark rounded-pill px-4 py-2">READ MORE</button>
+        </div>
+        <div class="col-lg-6 mt-5 mt-lg-0">
+          <div class="about-image-wrapper position-relative">
+            <img [src]="apiService.getFullImageUrl('/uploads/1781069606151.jpg')" alt="Coffee Shop" class="img-fluid rounded shadow-lg main-about-img">
+            <div class="floating-badge bg-white p-3 rounded shadow animate-on-scroll">
+              <h3 class="mb-0">15+</h3>
+              <p class="mb-0 small">Years of Experience</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Menu Highlights -->
+  <section id="menu" class="menu-highlights py-5 bg-dark text-white">
+    <div class="container py-5">
+      <div class="text-center mb-5">
+        <h6 class="text-uppercase animate-on-scroll text-muted">BY CHEFS</h6>
+        <h2 class="animate-on-scroll section-title">MENU HIGHLIGHTS</h2>
+      </div>
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <div class="menu-list">
+            <div *ngFor="let group of menuGroups" class="mb-5 animate-on-scroll">
+              <h4 class="menu-category-title mb-4">{{ group.name }}</h4>
+              <div *ngFor="let product of group.products" class="menu-item d-flex justify-content-between align-items-baseline mb-4">
+                <div class="menu-item-info">
+                  <span class="h5 mb-1 d-block">{{ product.name }}</span>
+                  <p class="small text-muted mb-0">{{ product.description }}</p>
+                </div>
+                <div class="menu-item-line flex-grow-1 mx-3 border-bottom border-secondary opacity-25"></div>
+                <div class="menu-item-price h5 mb-0">
+                  ${{ product.price }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="text-center mt-5">
+            <button class="btn btn-outline-light rounded-pill px-5 py-3" routerLink="/full-menu">VIEW FULL MENU</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials py-5">
+    <div class="container py-5 text-center">
+      <h6 class="text-uppercase mb-3 animate-on-scroll text-muted">BY FEEDBACK</h6>
+      <h2 class="mb-5 animate-on-scroll section-title">12k+ HAPPY USERS SAYS ABOUT COMPANY</h2>
+      <div *ngIf="testimonials.length > 0" class="testimonial-card bg-white p-5 rounded-4 shadow-sm animate-on-scroll mx-auto" style="max-width: 900px;">
+        <div class="row align-items-center">
+          <div class="col-md-4 mb-4 mb-md-0">
+            <img [src]="apiService.getFullImageUrl(testimonials[0].image_url)" alt="Testimonial" class="img-fluid rounded-circle border border-5 border-light shadow-sm" width="180">
+          </div>
+          <div class="col-md-8 text-md-start">
+            <div class="quote-icon mb-3"><i class="bi bi-quote fs-1 opacity-25"></i></div>
+            <p class="lead mb-4">"{{ testimonials[0].text }}"</p>
+            <h5 class="mb-0 fw-bold">{{ testimonials[0].name }}</h5>
+            <small class="text-muted text-uppercase tracking-wider">{{ testimonials[0].role }}</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Choose Us -->
+  <section class="why-choose-us py-5 bg-light">
+    <div class="container py-5">
+      <div class="row align-items-center">
+        <div class="col-lg-6 mb-5 mb-lg-0 animate-on-scroll">
+          <h6 class="text-uppercase mb-3 text-muted">OUR STRENGTH</h6>
+          <h2 class="mb-4 section-title">TASTE THE DIFFERENCE IN EVERY SIP</h2>
+          <div class="row g-4 mt-2">
+            <div class="col-sm-6">
+              <div class="feature-item p-4 bg-white rounded-3 shadow-sm h-100">
+                <i class="bi bi-check2-circle text-success fs-3 mb-2"></i>
+                <h5>Pure Organic</h5>
+                <p class="small text-muted mb-0">No chemicals or artificial additives.</p>
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="feature-item p-4 bg-white rounded-3 shadow-sm h-100">
+                <i class="bi bi-cup-straw text-primary fs-3 mb-2"></i>
+                <h5>Expert Baristas</h5>
+                <p class="small text-muted mb-0">Trained to craft the perfect brew.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+
+  <!-- Rich Flavors and Cozy Vibes -->
+  <section class="cozy-vibes py-5">
+    <div class="container py-5">
+      <div class="row g-0 rounded-4 overflow-hidden shadow-lg">
+        <div class="col-md-6 bg-dark text-white p-5 d-flex flex-column justify-content-center animate-on-scroll">
+          <h6 class="text-uppercase mb-3 text-muted">AMBIANCE</h6>
+          <h2 class="mb-4 display-5 fw-bold">RICH FLAVORS AND COZY VIBES</h2>
+          <p class="mb-5 opacity-75">Step into a world where the smell of freshly ground beans meets a warm, welcoming atmosphere designed for your comfort.</p>
+          <div class="d-flex gap-3">
+            <button class="btn btn-light rounded-pill px-4">BOOK A TABLE</button>
+            <button class="btn btn-outline-light rounded-pill px-4">OUR GALLERY</button>
+          </div>
+        </div>
+        <div class="col-md-6 animate-on-scroll">
+          <img src="backend/uploads/1781069606151.jpg" alt="Cozy Interior" class="img-fluid h-100 object-fit-cover">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Moments at Our Cafe Carousel -->
+  <section id="gallery" class="moments-carousel py-5 bg-light overflow-hidden">
+    <div class="container-fluid py-5">
+      <div class="text-center mb-5">
+        <h6 class="text-uppercase animate-on-scroll text-muted">BY MOMENTS</h6>
+        <h2 class="animate-on-scroll section-title">MOMENTS AT OUR CAFE</h2>
+      </div>
+      <div class="carousel-track d-flex gap-4 mt-5">
+        <!-- Double the items for seamless loop -->
+        <div class="carousel-item-custom" *ngFor="let i of [1,2,3,4,1,2,3,4]">
+          <img [src]="apiService.getFullImageUrl('/uploads/1781069606151.jpg')" alt="Cafe Moment" class="img-fluid rounded-4">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Meet with Avengers (Team) -->
+  <section class="team-section py-5">
+    <div class="container py-5">
+      <div class="text-center mb-5">
+        <h6 class="text-uppercase animate-on-scroll text-muted">OUR TEAM</h6>
+        <h2 class="animate-on-scroll section-title">MEET WITH AVENGERS</h2>
+      </div>
+      <div class="row g-4 mt-4">
+        <div class="col-md-4 animate-on-scroll" *ngFor="let member of team">
+          <div class="team-card text-center">
+            <div class="team-img-wrapper mb-4 rounded-4 overflow-hidden shadow-sm">
+              <img [src]="member.image" [alt]="member.name" class="img-fluid grayscale-hover">
+            </div>
+            <h5 class="fw-bold mb-1">{{ member.name }}</h5>
+            <p class="small text-muted text-uppercase">{{ member.role }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="faq-section py-5 bg-light">
+    <div class="container py-5">
+      <div class="row align-items-center">
+        <div class="col-lg-5 mb-5 mb-lg-0 animate-on-scroll">
+          <h6 class="text-uppercase mb-3 text-muted">HAVE QUESTIONS?</h6>
+          <h2 class="mb-4 section-title">FREQUENTLY ASKED QUESTIONS</h2>
+          <p class="text-muted">We have answered some of the most common questions about our coffee, services, and location.</p>
+        </div>
+        <div class="col-lg-7 ps-lg-5 animate-on-scroll">
+          <div class="faq-accordion">
+            <div class="faq-item mb-3 bg-white rounded-3 shadow-sm overflow-hidden" *ngFor="let faq of faqs; let i = index">
+              <div class="faq-header p-4 d-flex justify-content-between align-items-center cursor-pointer" (click)="toggleFaq(i)">
+                <h6 class="mb-0 fw-bold">{{ faq.question }}</h6>
+                <i class="bi" [ngClass]="faq.active ? 'bi-dash-lg' : 'bi-plus-lg'"></i>
+              </div>
+              <div class="faq-body p-4 pt-0 text-muted" *ngIf="faq.active">
+                {{ faq.answer }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Make Your Order -->
+  <section id="contact" class="order-section py-5 bg-dark text-white">
+    <div class="container py-5">
+      <div class="row g-5">
+        <div class="col-lg-6 animate-on-scroll">
+          <h6 class="text-uppercase mb-3 text-muted">BY LOCATION</h6>
+          <h2 class="mb-4 section-title text-white">CATCH US HERE</h2>
+          <div class="contact-info mb-5">
+            <div class="d-flex align-items-center mb-4">
+              <div class="contact-icon-box me-3"><i class="bi bi-telephone"></i></div>
+              <div>
+                <h6 class="mb-0 text-muted small text-uppercase">CALL US NOW</h6>
+                <p class="mb-0 h5">{{ settings.contact_phone || '+92 342 6124509' }}</p>
+              </div>
+            </div>
+            <div class="d-flex align-items-center mb-4">
+              <div class="contact-icon-box me-3"><i class="bi bi-geo-alt"></i></div>
+              <div>
+                <h6 class="mb-0 text-muted small text-uppercase">LOCATION</h6>
+                <p class="mb-0 h5">{{ settings.contact_address || 'Brew & Leaf, 123 Coffee Street, Bean Town, CA 90210' }}</p>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-outline-light rounded-pill px-4">GET DIRECTION</button>
+        </div>
+        <div class="col-lg-6 animate-on-scroll">
+          <div class="order-form bg-white text-dark p-5 rounded-4 shadow-lg">
+            <h3 class="mb-4 fw-bold">MAKE YOUR ORDER FROM HERE</h3>
+            <form>
+              <div class="row">
+                <div class="col-md-6 mb-4">
+                  <label class="small fw-bold text-muted mb-2">YOUR NAME</label>
+                  <input type="text" class="form-control bg-light border-0 py-3 px-4 rounded-3" placeholder="Enter name">
+                </div>
+                <div class="col-md-6 mb-4">
+                  <label class="small fw-bold text-muted mb-2">YOUR EMAIL</label>
+                  <input type="email" class="form-control bg-light border-0 py-3 px-4 rounded-3" placeholder="Enter email">
+                </div>
+              </div>
+              <div class="mb-4">
+                <label class="small fw-bold text-muted mb-2">SELECT PRODUCT</label>
+                <select class="form-select bg-light border-0 py-3 px-4 rounded-3">
+                  <option selected disabled>Choose a coffee...</option>
+                  <option *ngFor="let product of products">{{ product.name }}</option>
+                </select>
+              </div>
+              <div class="mb-4">
+                <label class="small fw-bold text-muted mb-2">MESSAGE</label>
+                <textarea class="form-control bg-light border-0 py-3 px-4 rounded-3" rows="3" placeholder="Special instructions..."></textarea>
+              </div>
+              <button class="btn btn-dark btn-lg w-100 rounded-pill py-3 mt-2">SEND MESSAGE</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer py-5 bg-black text-white">
+    <div class="container pt-5">
+      <div class="row mb-5 text-center">
+        <div class="col-lg-12">
+          <h1 class="display-1 fw-black mb-5 tracking-tighter">Brew & leaf</h1>
+        </div>
+      </div>
+      <div class="row g-5">
+        <div class="col-md-4">
+          <h6 class="text-uppercase mb-4 fw-bold text-muted small">WE ARE HERE</h6>
+          <p class="opacity-75 h6 lh-base">{{ settings.contact_address || '123 Coffee Street, Bean Town, CA 90210' }}</p>
+          <div class="social-links mt-4 d-flex gap-3">
+            <a href="#" class="social-btn"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="social-btn"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="social-btn"><i class="bi bi-twitter-x"></i></a>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <h6 class="text-uppercase mb-4 fw-bold text-muted small">ABOUT US</h6>
+          <p class="opacity-75 lh-lg small">Brew & Leaf is dedicated to serving the finest organic coffee in a cozy environment that makes you feel right at home with every single sip.</p>
+        </div>
+        <div class="col-md-4">
+          <h6 class="text-uppercase mb-4 fw-bold text-muted small">OPENING TIME</h6>
+          <div class="opening-hours opacity-75 small lh-lg" style="white-space: pre-line;">
+            {{ settings.opening_hours || 'Mon - Fri: 08:00 - 22:00\nSat: 09:00 - 23:00\nSun: 10:00 - 21:00' }}
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom mt-5 pt-5 border-top border-secondary border-opacity-25 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <p class="mb-0 small text-muted">&copy; 2026 Brew & Leaf. All rights reserved.</p>
+        <div class="footer-links d-flex gap-4">
+          <a href="#" class="text-muted small text-decoration-none">Privacy Policy</a>
+          <a href="#" class="text-muted small text-decoration-none">Terms & Conditions</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>

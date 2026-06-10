@@ -1,0 +1,158 @@
+.full-menu-page {
+  background-color: #f8f4eb; // Paper-like background
+  min-height: 100vh;
+  padding: 60px 20px;
+  font-family: 'Montserrat', sans-serif;
+
+  .menu-container {
+    max-width: 900px;
+    margin: 0 auto;
+    background-color: #fdfaf3;
+    border: 1px solid #e0d5c1;
+    padding: 60px;
+    position: relative;
+    color: #4a3427; // Deep coffee brown
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      border: 1px solid #e0d5c1;
+      pointer-events: none;
+    }
+  }
+
+  // Header Styles
+  .brand-logo {
+    width: 10rem;
+    height: auto;
+  }
+
+  .coffee-beans {
+    .bean {
+      font-size: 1rem;
+      margin: 0 5px;
+      color: #6d4c41;
+      transform: rotate(45deg);
+    }
+  }
+
+  .menu-title-divider {
+    margin: 30px 0;
+    
+    .line {
+      height: 1px;
+      background: #4a3427;
+      flex-grow: 1;
+      max-width: 150px;
+    }
+
+    .menu-main-title {
+      font-weight: 800;
+      background: #4a3427;
+      color: #fdfaf3;
+      padding: 5px 30px;
+      border-radius: 50px;
+      font-size: 1.2rem;
+      letter-spacing: 2px;
+    }
+  }
+
+  // Drinks Grid
+  .menu-group {
+    .group-title {
+      font-weight: 800;
+      background: #8d6e63;
+      color: white;
+      padding: 4px 20px;
+      border-radius: 50px;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .title-accent {
+      height: 2px;
+      background: #8d6e63;
+      flex-grow: 1;
+    }
+
+    .menu-item {
+      .item-name {
+        font-weight: 500;
+        font-size: 0.95rem;
+      }
+      
+      .leaf-icon {
+        color: #6d4c41;
+        font-size: 0.8rem;
+      }
+
+      .item-price {
+        font-weight: 700;
+        color: #4a3427;
+      }
+    }
+  }
+
+  // Food Section
+  .food-card {
+    background: #fdfaf3;
+    border: 1px dashed #d7ccc8;
+    
+    .food-group-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #5d4037;
+    }
+
+    .food-item {
+      .fw-bold {
+        font-size: 0.9rem;
+      }
+      
+      .leaf-icon {
+        color: #8d6e63;
+      }
+
+      .food-price {
+        font-size: 0.9rem;
+        color: #4a3427;
+      }
+    }
+  }
+
+  // Footer
+  footer {
+    font-size: 0.85rem;
+    
+    .footer-decoration {
+      color: #d7ccc8;
+    }
+
+    .bi-geo-alt-fill, .bi-instagram {
+      color: #8d6e63;
+    }
+  }
+}
+
+// Mobile Adjustments
+@media (max-width: 768px) {
+  .full-menu-page {
+    padding: 20px 10px;
+    
+    .menu-container {
+      padding: 30px 20px;
+    }
+
+    .menu-main-title {
+      font-size: 0.9rem;
+      padding: 5px 15px;
+    }
+  }
+}

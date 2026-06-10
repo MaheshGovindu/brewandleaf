@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
 import { HomeComponent } from './pages/home/home.component';
+import { Homepage2Component } from './pages/homepage2/homepage2.component';
+import { FullMenuComponent } from './pages/full-menu/full-menu.component';
 import { LoginComponent } from './pages/login/login.component';
 import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard.component';
 import { ProductManagementComponent } from './pages/product-mgmt/product-mgmt.component';
@@ -13,6 +15,8 @@ import { adminAuthGuard, loginRedirectGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: HomeComponent },
+  { path: 'homepage2', component: Homepage2Component },
+  { path: 'full-menu', component: FullMenuComponent },
   { path: 'product/:id', component: ProductDetailComponent },
   { path: 'login', component: LoginComponent, canActivate: [loginRedirectGuard] },
   { 

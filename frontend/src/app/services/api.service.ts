@@ -195,6 +195,19 @@ export class ApiService {
     return of({ success: true });
   }
 
+  // Public Site Content
+  getTestimonials(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/testimonials`);
+  }
+
+  getGallery(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/gallery`);
+  }
+
+  getSettings(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/settings`);
+  }
+
   // Auth
   login(credentials: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, credentials).pipe(

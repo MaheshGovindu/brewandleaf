@@ -248,7 +248,35 @@ exports.uploadProductImages = (req, res) => {
     const imgValues = req.files.map(f => [id, `/uploads/${f.filename}`]);
     db.query('INSERT INTO product_images (product_id, image_url) VALUES ?', [imgValues], (err, result) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: 'Images uploaded', count: req.files.length });
+        res.json({ message: 'Images uploaded successfully' });
+    });
+};
+
+// Testimonials
+exports.getTestimonials = (req, res) => {
+    db.query('SELECT * FROM testimonials WHERE is_active = TRUE', (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+};
+
+// Gallery
+exports.getGallery = (req, res) => {
+    db.query('SELECT * FROM gallery ORDER BY created_at DESC', (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+};
+
+// Settings
+exports.getSettings = (req, res) => {
+    db.query('SELECT * FROM settings', (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        const settings = results.reduce((acc, row) => {
+            acc[row.setting_key] = row.setting_value;
+            return acc;
+        }, {});
+        res.json(settings);
     });
 };
 

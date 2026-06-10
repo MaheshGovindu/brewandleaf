@@ -56,4 +56,9 @@ router.get('/stats/summary', controller.getSummaryStats);
 // Auth (Admin Login)
 router.post('/login', controller.login);
 
+// Public Site Content
+router.get('/testimonials', controller.getTestimonials);
+router.get('/gallery', controller.getGallery);
+router.get('/settings', controller.getSettings);
+
 module.exports = router;
