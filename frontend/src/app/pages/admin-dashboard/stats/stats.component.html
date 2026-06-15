@@ -2,7 +2,7 @@
   <div>
     <p class="eyebrow">Dashboard overview</p>
     <h2>Store performance snapshot</h2>
-    <p>Track revenue, orders, product count and inventory while you manage banners and menu collections from admin.</p>
+    <p>Track revenue, orders, product count, inventory, and credit/debit while you manage banners and menu collections from admin.</p>
   </div>
   <div class="dashboard-badge">
     <span>Live metrics</span>
@@ -18,10 +18,24 @@
     </div>
   </article>
   <article class="stat-card">
+    <div class="stat-icon today-revenue"><i class="bi bi-calendar-check"></i></div>
+    <div class="stat-info">
+      <p>Today's Revenue</p>
+      <h3>{{stats.today_revenue | currency:'INR':'symbol':'1.0-0'}}</h3>
+    </div>
+  </article>
+  <article class="stat-card">
     <div class="stat-icon orders"><i class="bi bi-cart-check"></i></div>
     <div class="stat-info">
       <p>Total Orders</p>
       <h3>{{stats.total_orders}}</h3>
+    </div>
+  </article>
+  <article class="stat-card">
+    <div class="stat-icon today-orders"><i class="bi bi-calendar-event"></i></div>
+    <div class="stat-info">
+      <p>Today's Orders</p>
+      <h3>{{stats.today_orders}}</h3>
     </div>
   </article>
   <article class="stat-card">
@@ -38,6 +52,20 @@
       <h3>{{stats.total_inventory}}</h3>
     </div>
   </article>
+  <article class="stat-card">
+    <div class="stat-icon credit"><i class="bi bi-arrow-down-circle"></i></div>
+    <div class="stat-info">
+      <p>Total Credit</p>
+      <h3>{{stats.total_credit | currency:'INR':'symbol':'1.0-0'}}</h3>
+    </div>
+  </article>
+  <article class="stat-card">
+    <div class="stat-icon debit"><i class="bi bi-arrow-up-circle"></i></div>
+    <div class="stat-info">
+      <p>Total Debit</p>
+      <h3>{{stats.total_debit | currency:'INR':'symbol':'1.0-0'}}</h3>
+    </div>
+  </article>
 </section>
 
 <section class="dashboard-layout">
@@ -45,7 +73,7 @@
     <div class="card-head">
       <div>
         <p class="eyebrow">Analytics</p>
-        <h3>Daily revenue trend</h3>
+        <h3>Daily trends</h3>
       </div>
     </div>
     <canvas #salesChart></canvas>
@@ -58,6 +86,7 @@
       <li>Homepage banners managed from the new banner studio.</li>
       <li>Menu groups powered by categories, sub-categories and products.</li>
       <li>Billing and product pages styled consistently with the new brand system.</li>
+      <li>Credit/debit tracking for accurate financial management.</li>
     </ul>
   </div>
 </section>

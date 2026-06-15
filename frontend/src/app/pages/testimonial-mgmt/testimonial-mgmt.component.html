@@ -1,0 +1,116 @@
+<div class="testimonial-page">
+  <section class="page-hero">
+    <div>
+      <p class="eyebrow">Homepage Content</p>
+      <h1>Testimonial studio</h1>
+      <p class="subtitle">Create customer testimonials to build trust and social proof on your homepage.</p>
+    </div>
+    <button class="btn-primary" (click)="showModal = true">Add testimonial</button>
+  </section>
+
+  <section class="testimonial-grid">
+    <article class="testimonial-card" *ngFor="let testimonial of testimonials">
+      <div class="testimonial-avatar">
+        <img *ngIf="testimonial.image_url" [src]="apiService.getFullImageUrl(testimonial.image_url)" [alt]="testimonial.name">
+        <div class="avatar-fallback" *ngIf="!testimonial.image_url">{{testimonial.name.charAt(0).toUpperCase()}}</div>
+      </div>
+      <div class="testimonial-copy">
+        <div class="testimonial-meta">
+          <span class="status" [class.inactive]="!testimonial.is_active">{{testimonial.is_active ? 'Active' : 'Inactive'}}</span>
+        </div>
+        <h3>{{testimonial.name}}</h3>
+        <p class="role">{{testimonial.role}}</p>
+        <p>{{testimonial.text}}</p>
+        <div class="table-actions">
+          <button class="ghost-btn" (click)="editTestimonial(testimonial)">Edit</button>
+          <button class="danger-btn" (click)="deleteTestimonial(testimonial.id!)">Delete</button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="table-shell">
+    <div class="table-header">
+      <div>
+        <h2>Stored testimonials</h2>
+        <p>These testimonials can be displayed on your homepage.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Text</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let testimonial of testimonials">
+            <td>{{testimonial.name}}</td>
+            <td>{{testimonial.role}}</td>
+            <td>{{testimonial.text}}</td>
+            <td>{{testimonial.is_active ? 'Active' : 'Inactive'}}</td>
+            <td class="action-cell">
+              <button class="ghost-btn" (click)="editTestimonial(testimonial)">Edit</button>
+              <button class="danger-btn" (click)="deleteTestimonial(testimonial.id!)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="modal-shell" *ngIf="showModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">Testimonial Setup</p>
+          <h2>{{isEditing ? 'Update testimonial' : 'Create testimonial'}}</h2>
+        </div>
+        <button class="icon-btn" type="button" (click)="closeModal()">×</button>
+      </div>
+
+      <form class="testimonial-form" (ngSubmit)="saveTestimonial()">
+        <label>
+          <span>Name</span>
+          <input type="text" name="name" [(ngModel)]="newTestimonial.name" required>
+        </label>
+
+        <label>
+          <span>Role / Title</span>
+          <input type="text" name="role" [(ngModel)]="newTestimonial.role">
+        </label>
+
+        <label>
+          <span>Testimonial Text</span>
+          <textarea name="text" [(ngModel)]="newTestimonial.text" required></textarea>
+        </label>
+
+        <label>
+          <span>Profile Photo</span>
+          <input type="file" accept="image/*" (change)="onFileSelected($event)">
+        </label>
+
+        <label class="toggle-row">
+          <input type="checkbox" name="is_active" [(ngModel)]="newTestimonial.is_active">
+          <span>Show this testimonial on homepage</span>
+        </label>
+
+        <div class="image-preview" *ngIf="newTestimonial.image_url">
+          <img [src]="apiService.getFullImageUrl(newTestimonial.image_url)" [alt]="newTestimonial.name || 'Testimonial preview'">
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="ghost-btn" (click)="closeModal()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="loading">
+            {{loading ? 'Saving...' : 'Save testimonial'}}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -75,9 +75,13 @@ h3 {
 }
 
 .stat-icon.revenue { background: rgba(0, 112, 74, 0.12); color: #00704a; }
+.stat-icon.today-revenue { background: rgba(0, 112, 74, 0.08); color: #00704a; }
 .stat-icon.orders { background: rgba(75, 54, 33, 0.12); color: #4b3621; }
+.stat-icon.today-orders { background: rgba(75, 54, 33, 0.08); color: #4b3621; }
 .stat-icon.products { background: rgba(155, 107, 63, 0.14); color: #8b5e34; }
 .stat-icon.inventory { background: rgba(51, 51, 51, 0.08); color: #333; }
+.stat-icon.credit { background: rgba(0, 112, 74, 0.15); color: #00704a; }
+.stat-icon.debit { background: rgba(158, 35, 35, 0.15); color: #9e2323; }
 
 .stat-info p {
   margin: 0 0 0.3rem;

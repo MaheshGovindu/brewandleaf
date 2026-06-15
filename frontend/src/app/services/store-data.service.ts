@@ -234,11 +234,15 @@ export class StoreDataService {
     const orders = this.getOrders();
     const products = this.getProducts();
     return {
-      total_revenue: orders.reduce((sum, order) => sum + Number(order.final_amount || 0), 0),
-      total_orders: orders.length,
-      total_products: products.length,
-      total_inventory: products.reduce((sum, product) => sum + Number(product.inventory_count || 0), 0)
-    };
+    total_revenue: orders.reduce((sum, order) => sum + Number(order.final_amount || 0), 0),
+    total_orders: orders.length,
+    total_products: products.length,
+    total_inventory: products.reduce((sum, product) => sum + Number(product.inventory_count || 0), 0),
+    today_revenue: 0,
+    today_orders: 0,
+    total_credit: 0,
+    total_debit: 0
+};
   }
 
   getDailyStats(): DailyStat[] {
