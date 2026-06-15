@@ -101,6 +101,16 @@ export class BillingComponent implements OnInit {
     return size.charAt(0).toUpperCase();
   }
 
+  isProductInCart(product: Product): boolean {
+    return this.cart.some(item => item.product_id === product.id);
+  }
+
+  getCartQuantityForProduct(product: Product): number {
+    return this.cart
+      .filter(item => item.product_id === product.id)
+      .reduce((sum, item) => sum + item.quantity, 0);
+  }
+
   openSizeSelector(product: Product): void {
     if (product.sizes && product.sizes.length > 0) {
       this.selectedProductForSize = product;
@@ -132,7 +142,8 @@ export class BillingComponent implements OnInit {
         quantity: 1,
         unit_price: unitPrice,
         total_price: unitPrice,
-        size: selectedSize?.size
+        size: selectedSize?.size,
+        image_url: product.image_url
       });
     }
 
@@ -233,7 +244,11 @@ export class BillingComponent implements OnInit {
     }
 
     const html2canvas = (await import('html2canvas')).default;
-    const canvas = await html2canvas(data as HTMLElement);
+    const canvas = await html2canvas(data as HTMLElement, {
+      useCORS: true,
+      allowTaint: true,
+      scale: 2
+    });
 
     const imgWidth = 208;
     const imgHeight = canvas.height * imgWidth / canvas.width;

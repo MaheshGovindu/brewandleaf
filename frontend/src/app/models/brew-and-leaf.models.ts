@@ -58,6 +58,7 @@ export interface OrderItem {
     unit_price: number;
     total_price: number;
     size?: string; // 'small', 'regular', etc.
+    image_url?: string;
 }
 
 export interface Order {

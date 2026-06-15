@@ -44,7 +44,16 @@
             <span class="badge">{{groupedAndFilteredProducts[category].length}}</span>
           </div>
           <div class="products-grid">
-            <button class="product-item" type="button" *ngFor="let prod of groupedAndFilteredProducts[category]" (click)="openSizeSelector(prod)">
+            <button
+              class="product-item"
+              type="button"
+              *ngFor="let prod of groupedAndFilteredProducts[category]"
+              [class.selected]="isProductInCart(prod)"
+              (click)="openSizeSelector(prod)">
+              <span class="selected-badge" *ngIf="isProductInCart(prod)">
+                <i class="bi bi-check-circle-fill"></i>
+                <span class="qty-badge" *ngIf="getCartQuantityForProduct(prod) > 0">{{getCartQuantityForProduct(prod)}}</span>
+              </span>
               <div class="product-thumb">
                 <img *ngIf="prod.image_url" [src]="apiService.getFullImageUrl(prod.image_url)" [alt]="prod.name">
                 <span *ngIf="!prod.image_url">{{prod.sub_category_name || 'Menu'}}</span>
@@ -77,10 +86,16 @@
 
       <div class="cart-list" *ngIf="cart.length; else emptyCart">
         <article class="cart-item" *ngFor="let item of cart; let i = index">
-          <div>
-            <strong>{{item.name}}</strong>
-            <small *ngIf="item.size">{{item.size}}</small>
-            <small>{{item.unit_price | currency:'INR':'symbol':'1.0-0'}} each</small>
+          <div class="cart-item-info">
+            <div class="cart-item-thumb">
+              <img *ngIf="item.image_url" [src]="apiService.getFullImageUrl(item.image_url)" [alt]="item.name">
+              <span *ngIf="!item.image_url">{{item.name.charAt(0)}}</span>
+            </div>
+            <div>
+              <strong>{{item.name}}</strong>
+              <small *ngIf="item.size">{{item.size | titlecase}}</small>
+              <small>{{item.unit_price | currency:'INR':'symbol':'1.0-0'}} each</small>
+            </div>
           </div>
           <div class="cart-actions">
             <button type="button" (click)="changeQuantity(i, -1)">-</button>
@@ -150,6 +165,7 @@
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
       <thead>
         <tr style="border-bottom: 2px solid #4B3621;">
+          <th style="text-align: left; padding: 10px; width: 70px;">Image</th>
           <th style="text-align: left; padding: 10px;">Item</th>
           <th style="text-align: center; padding: 10px;">Qty</th>
           <th style="text-align: right; padding: 10px;">Price</th>
@@ -157,9 +173,24 @@
       </thead>
       <tbody>
         <tr *ngFor="let item of cart" style="border-bottom: 1px solid #eee;">
-          <td style="padding: 10px;">{{item.name}} <span *ngIf="item.size">({{item.size | titlecase}})</span></td>
-          <td style="text-align: center; padding: 10px;">{{item.quantity}}</td>
-          <td style="text-align: right; padding: 10px;">{{item.total_price | currency}}</td>
+          <td style="padding: 10px; vertical-align: middle;">
+            <img
+              *ngIf="item.image_url"
+              [src]="apiService.getFullImageUrl(item.image_url)"
+              [alt]="item.name"
+              style="width: 52px; height: 52px; object-fit: cover; border-radius: 10px; display: block;">
+            <div
+              *ngIf="!item.image_url"
+              style="width: 52px; height: 52px; border-radius: 10px; background: #f3e8db; color: #4B3621; display: grid; place-items: center; font-weight: 700;">
+              {{item.name.charAt(0)}}
+            </div>
+          </td>
+          <td style="padding: 10px; vertical-align: middle;">
+            {{item.name}}
+            <span *ngIf="item.size" style="color: #8b5e34;">({{item.size | titlecase}})</span>
+          </td>
+          <td style="text-align: center; padding: 10px; vertical-align: middle;">{{item.quantity}}</td>
+          <td style="text-align: right; padding: 10px; vertical-align: middle;">{{item.total_price | currency}}</td>
         </tr>
       </tbody>
     </table>
