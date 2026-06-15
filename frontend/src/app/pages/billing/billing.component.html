@@ -3,12 +3,12 @@
     <div>
       <p class="eyebrow">Billing desk</p>
       <h1>Fast modern POS billing</h1>
-      <p>Create invoices, apply amount or percentage discounts, and send invoice links on WhatsApp.</p>
+      <p>Create invoices, apply discounts, manage open orders, and send links on WhatsApp.</p>
     </div>
-    <div class="hero-card">
-      <strong>{{cart.length}}</strong>
-      <span>items in order</span>
-    </div>
+    <div class="hero-card"> 
+       <strong>{{cart.length}}</strong> 
+       <span>items in order</span> 
+     </div>
   </section>
 
   <div class="billing-container">
@@ -79,9 +79,48 @@
       </div>
 
       <div class="customer-info">
+        <!-- Customer search -->
+        <div class="customer-selector">
+          <div class="input-group" (click)="showCustomerSearch = !showCustomerSearch">
+            <input type="text" [(ngModel)]="customerSearchTerm" placeholder="Select existing customer..." (click)="$event.stopPropagation()">
+            <span class="dropdown-icon">▼</span>
+          </div>
+          <div class="customer-dropdown" *ngIf="showCustomerSearch">
+            <div class="customer-option" *ngFor="let customer of filteredCustomers" (click)="selectCustomer(customer)">
+              <div>
+                <strong>{{customer.name}}</strong>
+                <small *ngIf="customer.phone">{{customer.phone}}</small>
+              </div>
+              <small *ngIf="customer.loyalty_points">{{customer.loyalty_points}} pts</small>
+            </div>
+            <div class="customer-option" (click)="showCustomerSearch = false; selectedCustomer = null">
+              <em>Walk-in customer</em>
+            </div>
+          </div>
+        </div>
+
         <input type="text" [(ngModel)]="customerName" placeholder="Customer Name">
         <input type="tel" name="phone" [(ngModel)]="customerPhone" placeholder="WhatsApp Number">
         <input type="email" [(ngModel)]="customerEmail" placeholder="Customer Email">
+      </div>
+
+      <!-- Open orders selector -->
+      <div class="open-orders" *ngIf="openOrders.length">
+        <p class="eyebrow">Open orders</p>
+        <div class="order-list">
+          <button 
+            type="button" 
+            class="order-item"
+            [class.active]="selectedOpenOrder?.id === order.id"
+            *ngFor="let order of openOrders" 
+            (click)="selectOpenOrder(order)">
+            <div>
+              <strong>{{order.invoice_number}}</strong>
+              <small>{{order.customer_name || 'Walk-in'}}</small>
+            </div>
+            <span>₹{{order.final_amount}}</span>
+          </button>
+        </div>
       </div>
 
       <div class="cart-list" *ngIf="cart.length; else emptyCart">
@@ -127,8 +166,31 @@
             <span *ngIf="discountType === 'percent'">%</span>
           </div>
         </div>
+        <div class="row payment-row">
+          <span>Payment</span>
+          <div class="payment-buttons">
+            <button 
+              type="button" 
+              [class.active]="paymentMethod === 'cash'"
+              (click)="paymentMethod = 'cash'">
+              Cash
+            </button>
+            <button 
+              type="button" 
+              [class.active]="paymentMethod === 'online'"
+              (click)="paymentMethod = 'online'">
+              Online
+            </button>
+          </div>
+        </div>
         <div class="row total"><span>Total</span> <span>{{total | currency:'INR':'symbol':'1.0-0'}}</span></div>
-        <button class="btn-generate" [disabled]="cart.length === 0" (click)="generateInvoice()">Generate invoice</button>
+        <button class="btn-generate" [disabled]="cart.length === 0" (click)="generateInvoice()">
+          Generate Invoice & Close Order
+        </button>
+        <button class="btn-save-open" [disabled]="cart.length === 0" (click)="saveAsOpenOrder()">
+          {{ selectedOpenOrder ? 'Update Open Order' : 'Save as Open Order' }}
+        </button>
+        <button class="btn-reset" type="button" (click)="resetBilling()">New Order</button>
       </div>
     </div>
   </div>
@@ -160,6 +222,7 @@
       <p><strong>Invoice #:</strong> {{invoiceNumber || 'Pending'}}</p>
       <p><strong>Customer:</strong> {{customerName || 'Walk-in Customer'}}</p>
       <p><strong>Phone:</strong> {{customerPhone || 'N/A'}}</p>
+      <p><strong>Payment Method:</strong> {{paymentMethod | titlecase}}</p>
       <p><strong>Date:</strong> {{today | date:'medium'}}</p>
     </div>
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">

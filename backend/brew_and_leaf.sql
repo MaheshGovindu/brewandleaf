@@ -68,16 +68,37 @@ CREATE TABLE IF NOT EXISTS product_images (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
--- Orders Table
+-- Customers Table
+CREATE TABLE IF NOT EXISTS customers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    loyalty_points INT DEFAULT 0, -- For unique loyalty feature
+    total_orders INT DEFAULT 0,
+    total_spent DECIMAL(10,2) DEFAULT 0.00,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Orders Table (updated)
 CREATE TABLE IF NOT EXISTS orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    invoice_number VARCHAR(100) UNIQUE NOT NULL,
+    customer_id INT,
     customer_name VARCHAR(255),
     customer_email VARCHAR(255),
+    customer_phone VARCHAR(50),
     total_amount DECIMAL(10, 2) NOT NULL,
     discount_applied DECIMAL(10, 2) DEFAULT 0.00,
     final_amount DECIMAL(10, 2) NOT NULL,
+    payment_method ENUM('cash', 'online') DEFAULT 'cash',
     payment_status ENUM('pending', 'paid', 'cancelled') DEFAULT 'paid',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    order_status ENUM('open', 'closed') DEFAULT 'open', -- Allow adding items to open orders
+    loyalty_points_earned INT DEFAULT 0,
+    loyalty_points_used INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
 );
 
 -- Order Items Table
@@ -85,6 +106,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
     product_id INT NOT NULL,
+    product_size VARCHAR(50),
     quantity INT NOT NULL,
     unit_price DECIMAL(10, 2) NOT NULL,
     total_price DECIMAL(10, 2) NOT NULL,
@@ -92,13 +114,26 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 );
 
--- Daily Stats/Dashboard Table (for caching or historical data if needed)
+-- Credit/Debit Transactions Table
+CREATE TABLE IF NOT EXISTS credit_debit (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    type ENUM('credit', 'debit') NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    description TEXT,
+    order_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL
+);
+
+-- Daily Stats/Dashboard Table (updated)
 CREATE TABLE IF NOT EXISTS daily_stats (
     id INT AUTO_INCREMENT PRIMARY KEY,
     date DATE UNIQUE NOT NULL,
     total_sales DECIMAL(10, 2) DEFAULT 0.00,
     total_cost DECIMAL(10, 2) DEFAULT 0.00,
     total_profit DECIMAL(10, 2) DEFAULT 0.00,
+    total_credit DECIMAL(10, 2) DEFAULT 0.00,
+    total_debit DECIMAL(10, 2) DEFAULT 0.00,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -1,0 +1,59 @@
+<div class="settings-page">
+  <section class="page-hero">
+    <div>
+      <p class="eyebrow">Configuration</p>
+      <h1>Store settings</h1>
+      <p class="subtitle">Configure your store details, about section, and contact information.</p>
+    </div>
+  </section>
+
+  <section class="table-shell">
+    <div class="table-header">
+      <div>
+        <h2>All settings</h2>
+        <p>Complete list of store configuration options.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Value</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let key of getKeys()">
+            <td>{{formatKey(key)}}</td>
+            <td>
+              <span *ngIf="editingKey !== key">{{settings[key]}}</span>
+              <textarea *ngIf="editingKey === key && (key.includes('description') || key.includes('hours'))" 
+                        [(ngModel)]="settings[key]" 
+                        placeholder="Enter value" 
+                        rows="3"></textarea>
+              <input *ngIf="editingKey === key && !key.includes('description') && !key.includes('hours')" 
+                     type="text" 
+                     [(ngModel)]="settings[key]" 
+                     placeholder="Enter value">
+            </td>
+            <td class="action-cell">
+              <button *ngIf="editingKey !== key" class="ghost-btn" (click)="startEdit(key)">
+                ✏️ Edit
+              </button>
+              <ng-container *ngIf="editingKey === key">
+                <button class="btn-primary" (click)="saveSetting(key)" [disabled]="loading">
+                  {{loading ? 'Saving...' : 'Save'}}
+                </button>
+                <button class="ghost-btn" (click)="cancelEdit()">
+                  Cancel
+                </button>
+              </ng-container>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

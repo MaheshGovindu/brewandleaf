@@ -16,6 +16,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+// Auth (Admin Login)
+router.post('/login', controller.login);
+
 // Categories
 router.get('/categories', controller.getCategories);
 router.post('/categories', controller.addCategory);
@@ -40,25 +43,40 @@ router.post('/products/:id/sizes', controller.addProductSize);
 router.put('/products/:id/sizes/:sizeId', controller.updateProductSize);
 router.delete('/products/:id/sizes/:sizeId', controller.deleteProductSize);
 
-// Upload multiple images for a product (gallery)
+// Upload Multiple Images for Product
 router.post('/products/:id/images', upload.array('images', 8), controller.uploadProductImages);
+
+// Customers
+router.get('/customers', controller.getCustomers);
+router.get('/customers/:id', controller.getCustomerById);
+router.post('/customers', controller.addCustomer);
+router.put('/customers/:id', controller.updateCustomer);
+router.delete('/customers/:id', controller.deleteCustomer);
+
+// Credit/Debit
+router.get('/credit-debit', controller.getCreditDebit);
+router.post('/credit-debit', controller.addCreditDebit);
+router.delete('/credit-debit/:id', controller.deleteCreditDebit);
 
 // Orders & Billing
 router.post('/orders', controller.createOrder);
-router.post('/upload-invoice', upload.single('file'), controller.uploadInvoice);
 router.get('/orders', controller.getOrders);
+router.get('/orders/open', controller.getOpenOrders);
 router.get('/orders/:id', controller.getOrderById);
+router.post('/orders/:id/add-items', controller.addItemsToOrder);
+router.put('/orders/:id', controller.updateOrder);
+router.put('/orders/:id/close', controller.closeOrder);
+router.get('/transactions', controller.getTransactions);
+router.post('/upload-invoice', upload.single('file'), controller.uploadInvoice);
 
 // Dashboard & Stats
 router.get('/stats/daily', controller.getDailyStats);
 router.get('/stats/summary', controller.getSummaryStats);
 
-// Auth (Admin Login)
-router.post('/login', controller.login);
-
 // Public Site Content
 router.get('/testimonials', controller.getTestimonials);
 router.get('/gallery', controller.getGallery);
 router.get('/settings', controller.getSettings);
+router.put('/settings', controller.updateSettings);
 
 module.exports = router;

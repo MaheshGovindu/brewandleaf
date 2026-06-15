@@ -4,7 +4,7 @@ require('dotenv').config();
 const db = mysql.createConnection({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'Mahindu@85',
+  password: process.env.DB_PASSWORD || 'pmechtech0031',
   database: process.env.DB_NAME || 'brew_and_leaf_db'
 });
 

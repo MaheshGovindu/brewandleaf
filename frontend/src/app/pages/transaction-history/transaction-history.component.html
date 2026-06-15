@@ -1,0 +1,89 @@
+<section class="dashboard-hero">
+  <div>
+    <p class="eyebrow">Transaction history</p>
+    <h2>Transaction Records</h2>
+    <p>View all transaction details, date-wise with payment method breakdown and quantities.</p>
+  </div>
+</section>
+
+<section class="transactions-section" *ngIf="!loading">
+  <div *ngIf="getSortedDates().length === 0" class="empty-state">
+    <i class="bi bi-receipt-cutoff"></i>
+    <p>No transactions found yet.</p>
+  </div>
+
+  <div *ngFor="let date of getSortedDates()" class="date-group">
+    <div class="date-header">
+      <div>
+        <h3>{{ date | date:'fullDate' }}</h3>
+        <div class="date-summary">
+          <span class="summary-item">
+            <i class="bi bi-cart-check"></i>
+            {{ getDateSummary(date).count }} orders
+          </span>
+          <span class="summary-item">
+            <i class="bi bi-cash"></i>
+            Cash: {{ getDateSummary(date).cash | currency:'INR':'symbol':'1.0-0' }}
+          </span>
+          <span class="summary-item">
+            <i class="bi bi-credit-card"></i>
+            Online: {{ getDateSummary(date).online | currency:'INR':'symbol':'1.0-0' }}
+          </span>
+          <span class="summary-item total">
+            <i class="bi bi-currency-rupee"></i>
+            Total: {{ getDateSummary(date).total | currency:'INR':'symbol':'1.0-0' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="transactions-card">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Invoice</th>
+              <th>Customer</th>
+              <th>Payment</th>
+              <th>Items</th>
+              <th>Qty</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tx of transactionsByDate[date]">
+              <td>{{ tx.created_at | date:'shortTime' }}</td>
+              <td class="invoice-number">{{ tx.invoice_number }}</td>
+              <td>
+                <div>
+                  <strong>{{ tx.customer_name || 'Walk-in' }}</strong>
+                  <small *ngIf="tx.customer_phone">{{ tx.customer_phone }}</small>
+                </div>
+              </td>
+              <td>
+                <span class="payment-badge" [class.cash]="tx.payment_method === 'cash'" [class.online]="tx.payment_method === 'online'">
+                  {{ tx.payment_method | titlecase }}
+                </span>
+              </td>
+              <td>{{ tx.item_count }}</td>
+              <td>{{ tx.total_quantity }}</td>
+              <td class="amount">{{ tx.final_amount | currency:'INR':'symbol':'1.0-0' }}</td>
+              <td>
+                <span class="status-badge" [class.closed]="tx.order_status === 'closed'" [class.open]="tx.order_status === 'open'">
+                  {{ tx.order_status | titlecase }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div *ngIf="loading" class="loading-state">
+  <i class="bi bi-hourglass-split"></i>
+  <p>Loading transactions...</p>
+</div>

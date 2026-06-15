@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from, map, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Banner, Category, SubCategory, Product, ProductSize, Order, Stats } from '../models/brew-and-leaf.models';
+import { Banner, Category, SubCategory, Product, ProductSize, Order, Stats, Customer, CreditDebit, DailyStats } from '../models/brew-and-leaf.models';
 import { StoreDataService } from './store-data.service';
 
 @Injectable({
@@ -125,11 +125,77 @@ export class ApiService {
     );
   }
 
+  // Customers
+  getCustomers(): Observable<Customer[]> {
+    return this.http.get<Customer[]>(`${this.apiUrl}/customers`);
+  }
+
+  getCustomerById(id: number): Observable<Customer> {
+    return this.http.get<Customer>(`${this.apiUrl}/customers/${id}`);
+  }
+
+  addCustomer(customer: Customer): Observable<Customer> {
+    return this.http.post<Customer>(`${this.apiUrl}/customers`, customer);
+  }
+
+  updateCustomer(id: number, customer: Customer): Observable<any> {
+    return this.http.put(`${this.apiUrl}/customers/${id}`, customer);
+  }
+
+  deleteCustomer(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/customers/${id}`);
+  }
+
+  // Credit/Debit
+  getCreditDebit(): Observable<CreditDebit[]> {
+    return this.http.get<CreditDebit[]>(`${this.apiUrl}/credit-debit`);
+  }
+
+  addCreditDebit(transaction: CreditDebit): Observable<CreditDebit> {
+    return this.http.post<CreditDebit>(`${this.apiUrl}/credit-debit`, transaction);
+  }
+
+  deleteCreditDebit(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/credit-debit/${id}`);
+  }
+
   // Orders
   createOrder(order: Order): Observable<any> {
     return this.http.post(`${this.apiUrl}/orders`, order).pipe(
       catchError(() => of(this.storeData.saveOrder(order)))
     );
+  }
+
+  getOrders(): Observable<Order[]> {
+    return this.http.get<Order[]>(`${this.apiUrl}/orders`).pipe(
+      catchError(() => of(this.storeData.getOrders()))
+    );
+  }
+
+  getOpenOrders(): Observable<Order[]> {
+    return this.http.get<Order[]>(`${this.apiUrl}/orders/open`);
+  }
+
+  getOrderById(id: number): Observable<Order> {
+    return this.http.get<Order>(`${this.apiUrl}/orders/${id}`).pipe(
+      catchError(() => of(this.storeData.getOrders().find(order => order.id === id) as Order))
+    );
+  }
+
+  addItemsToOrder(orderId: number, items: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}/orders/${orderId}/add-items`, items);
+  }
+
+  closeOrder(orderId: number): Observable<any> {
+    return this.http.put(`${this.apiUrl}/orders/${orderId}/close`, {});
+  }
+
+  updateOrder(orderId: number, order: Order): Observable<any> {
+    return this.http.put(`${this.apiUrl}/orders/${orderId}`, order);
+  }
+
+  getTransactions(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/transactions`);
   }
 
   addProductSize(productId: number, size: ProductSize): Observable<ProductSize> {
@@ -152,18 +218,6 @@ export class ApiService {
     );
   }
 
-  getOrders(): Observable<Order[]> {
-    return this.http.get<Order[]>(`${this.apiUrl}/orders`).pipe(
-      catchError(() => of(this.storeData.getOrders()))
-    );
-  }
-
-  getOrderById(id: number): Observable<Order> {
-    return this.http.get<Order>(`${this.apiUrl}/orders/${id}`).pipe(
-      catchError(() => of(this.storeData.getOrders().find(order => order.id === id) as Order))
-    );
-  }
-
   // Stats
   getSummaryStats(): Observable<Stats> {
     return this.http.get<Stats>(`${this.apiUrl}/stats/summary`).pipe(
@@ -171,8 +225,8 @@ export class ApiService {
     );
   }
 
-  getDailyStats(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/stats/daily`).pipe(
+  getDailyStats(): Observable<DailyStats[]> {
+    return this.http.get<DailyStats[]>(`${this.apiUrl}/stats/daily`).pipe(
       catchError(() => of(this.storeData.getDailyStats()))
     );
   }
@@ -206,6 +260,10 @@ export class ApiService {
 
   getSettings(): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/settings`);
+  }
+
+  updateSettings(key: string, value: string): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/settings`, { key, value });
   }
 
   // Auth

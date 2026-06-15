@@ -107,6 +107,7 @@ export const DEMO_ORDERS: Order[] = [
     total_amount: 248,
     discount_applied: 0,
     final_amount: 248,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    payment_method: 'cash'
   }
 ];

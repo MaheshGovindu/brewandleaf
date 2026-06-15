@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
-import { Product, Order, OrderItem, ProductSize } from '../../models/brew-and-leaf.models';
+import { Product, Order, OrderItem, ProductSize, Customer } from '../../models/brew-and-leaf.models';
 import { jsPDF } from 'jspdf';
 
 const SIZE_ORDER = ['small', 'regular', 'large'];
@@ -16,24 +16,82 @@ const SIZE_ORDER = ['small', 'regular', 'large'];
 })
 export class BillingComponent implements OnInit {
   products: Product[] = [];
+  customers: Customer[] = [];
+  openOrders: Order[] = [];
   cart: OrderItem[] = [];
   customerName = '';
   customerEmail = '';
   customerPhone = '';
+  selectedCustomer: Customer | null = null;
+  selectedOpenOrder: Order | null = null;
   searchTerm = '';
   selectedCategory = 'All';
   discount = 0;
   discountType: 'amount' | 'percent' = 'amount';
+  paymentMethod: 'cash' | 'online' = 'cash';
   invoiceNumber = '';
   today = new Date();
 
   showSizeModal = false;
   selectedProductForSize: Product | null = null;
+  showCustomerSearch = false;
+  customerSearchTerm = '';
 
-  constructor(public apiService: ApiService) {}
+  constructor(public apiService: ApiService) { }
 
   ngOnInit(): void {
     this.apiService.getProducts().subscribe(data => this.products = data);
+    this.apiService.getCustomers().subscribe(data => this.customers = data);
+    this.apiService.getOpenOrders().subscribe(data => this.openOrders = data);
+  }
+
+  get filteredCustomers(): Customer[] {
+    if (!this.customerSearchTerm) return this.customers;
+    const term = this.customerSearchTerm.toLowerCase();
+    return this.customers.filter(c => 
+      c.name.toLowerCase().includes(term) || 
+      (c.phone && c.phone.includes(term)) ||
+      (c.email && c.email.toLowerCase().includes(term))
+    );
+  }
+
+  selectCustomer(customer: Customer): void {
+    this.selectedCustomer = customer;
+    this.customerName = customer.name;
+    this.customerEmail = customer.email || '';
+    this.customerPhone = customer.phone || '';
+    this.showCustomerSearch = false;
+  }
+
+  selectOpenOrder(order: any): void {
+    console.log('Selected order:', order);
+    console.log('Order items:', order.items);
+    
+    this.selectedOpenOrder = order as Order;
+    this.customerName = order.customer_name;
+    this.customerEmail = order.customer_email || '';
+    this.customerPhone = order.customer_phone || '';
+    this.invoiceNumber = order.invoice_number;
+    
+    // Map backend items to OrderItem format (ensure all fields exist)
+    const rawItems = order.items || [];
+    console.log('Raw items:', rawItems);
+    
+    this.cart = rawItems.map((item: any) => ({
+      product_id: item.product_id,
+      name: item.name,
+      quantity: item.quantity,
+      unit_price: Number(item.unit_price),
+      total_price: Number(item.total_price),
+      size: item.product_size || item.size
+    }));
+    
+    console.log('Mapped cart:', this.cart);
+    
+    this.discount = Number(order.discount_applied) || 0;
+    if (order.payment_method) {
+      this.paymentMethod = order.payment_method;
+    }
   }
 
   get groupedAndFilteredProducts(): { [key: string]: Product[] } {
@@ -185,33 +243,119 @@ export class BillingComponent implements OnInit {
     return d;
   }
 
+  saveAsOpenOrder(): void {
+    if (this.selectedOpenOrder) {
+      // Update existing open order
+      const updatedOrder: Order = {
+        ...this.selectedOpenOrder,
+        items: this.cart,
+        customer_name: this.customerName,
+        customer_email: this.customerEmail,
+        customer_phone: this.customerPhone,
+        total_amount: this.subtotal,
+        discount_applied: this.discountAmount,
+        final_amount: this.total,
+        payment_method: this.paymentMethod,
+        order_status: 'open'
+      };
+
+      this.apiService.updateOrder(this.selectedOpenOrder.id!, updatedOrder).subscribe(() => {
+        alert('Order saved successfully! You can continue adding more items or generate invoice!');
+        this.apiService.getOpenOrders().subscribe(data => {
+          this.openOrders = data;
+          // Re-select the updated order
+          const refreshedOrder = data.find(o => o.id === this.selectedOpenOrder!.id);
+          if (refreshedOrder) {
+            this.selectedOpenOrder = refreshedOrder;
+          }
+        });
+      }, () => {
+        alert('Unable to save order. Please try again.');
+      });
+    } else {
+      // Create new open order
+      this.invoiceNumber = this.createInvoiceNumber();
+      const order: Order = {
+        invoice_number: this.invoiceNumber,
+        customer_id: this.selectedCustomer?.id,
+        customer_name: this.customerName,
+        customer_email: this.customerEmail,
+        customer_phone: this.customerPhone,
+        items: this.cart,
+        total_amount: this.subtotal,
+        discount_applied: this.discountAmount,
+        final_amount: this.total,
+        payment_method: this.paymentMethod,
+        order_status: 'open',
+        discount_type: this.discountType,
+        discount_percent: this.discountType === 'percent' ? this.discount : undefined
+      };
+
+      this.apiService.createOrder(order).subscribe(() => {
+        alert('Open order saved successfully! Now you can add more items later or generate invoice!');
+        this.resetBilling();
+      }, () => {
+        alert('Unable to save order. Please try again.');
+      });
+    }
+  }
+
   generateInvoice(): void {
-    this.invoiceNumber = this.createInvoiceNumber();
     const whatsappWindow = this.customerPhone ? window.open('about:blank') : null;
 
-    const order: Order = {
-      customer_name: this.customerName,
-      customer_email: this.customerEmail,
-      customer_phone: this.customerPhone,
-      invoice_number: this.invoiceNumber,
-      items: this.cart,
-      total_amount: this.subtotal,
-      discount_applied: this.discountAmount,
-      final_amount: this.total,
-      discount_type: this.discountType,
-      discount_percent: this.discountType === 'percent' ? this.discount : undefined
-    };
-
-    this.apiService.createOrder(order).subscribe(async () => {
-      alert('Order created! Generating PDF...');
+    const closeAndReset = async () => {
       try {
         await this.downloadPDF(whatsappWindow);
       } finally {
         this.resetBilling();
       }
-    }, () => {
-      alert('Unable to generate invoice. Please try again.');
-    });
+    };
+
+    if (this.selectedOpenOrder) {
+      // Update the existing order with current cart and then close it
+      const updatedOrder: Order = {
+        ...this.selectedOpenOrder,
+        items: this.cart,
+        customer_name: this.customerName,
+        customer_email: this.customerEmail,
+        customer_phone: this.customerPhone,
+        total_amount: this.subtotal,
+        discount_applied: this.discountAmount,
+        final_amount: this.total,
+        payment_method: this.paymentMethod,
+        order_status: 'closed'
+      };
+
+      this.apiService.updateOrder(this.selectedOpenOrder.id!, updatedOrder).subscribe(() => {
+        closeAndReset();
+      }, () => {
+        alert('Unable to update and close order. Please try again.');
+      });
+    } else {
+      // Create new closed order
+      this.invoiceNumber = this.createInvoiceNumber();
+      const order: Order = {
+        invoice_number: this.invoiceNumber,
+        customer_id: this.selectedCustomer?.id,
+        customer_name: this.customerName,
+        customer_email: this.customerEmail,
+        customer_phone: this.customerPhone,
+        items: this.cart,
+        total_amount: this.subtotal,
+        discount_applied: this.discountAmount,
+        final_amount: this.total,
+        payment_method: this.paymentMethod,
+        order_status: 'closed',
+        discount_type: this.discountType,
+        discount_percent: this.discountType === 'percent' ? this.discount : undefined
+      };
+
+      this.apiService.createOrder(order).subscribe(async () => {
+        await closeAndReset();
+      }, () => {
+        alert('Unable to generate invoice. Please try again.');
+      });
+    }
   }
 
   createInvoiceNumber(): string {
@@ -291,7 +435,11 @@ export class BillingComponent implements OnInit {
     this.customerName = '';
     this.customerEmail = '';
     this.customerPhone = '';
+    this.selectedCustomer = null;
+    this.selectedOpenOrder = null;
     this.discount = 0;
     this.invoiceNumber = '';
+    this.paymentMethod = 'cash';
+    this.apiService.getOpenOrders().subscribe(data => this.openOrders = data);
   }
 }
