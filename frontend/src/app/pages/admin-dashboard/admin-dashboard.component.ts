@@ -13,6 +13,7 @@ import { AuthService } from '../../services/auth.service';
 export class AdminDashboardComponent {
   isCompactView = false;
   sidebarOpen = true;
+  isSidebarHovered = false;
   private previousCompactView: boolean | null = null;
 
   constructor(private authService: AuthService, private router: Router) {
@@ -21,6 +22,14 @@ export class AdminDashboardComponent {
 
   get userName(): string {
     return this.authService.getUser()?.name || 'Admin';
+  }
+
+  get isSidebarExpanded(): boolean {
+    if (this.isCompactView) {
+      return this.sidebarOpen;
+    }
+
+    return this.sidebarOpen || this.isSidebarHovered;
   }
 
   @HostListener('window:resize')
@@ -36,8 +45,22 @@ export class AdminDashboardComponent {
     this.sidebarOpen = false;
   }
 
+  openSidebarOnHover(): void {
+    if (!this.isCompactView && !this.sidebarOpen) {
+      this.isSidebarHovered = true;
+    }
+  }
+
+  closeSidebarOnHoverOut(): void {
+    if (!this.isCompactView) {
+      this.isSidebarHovered = false;
+    }
+  }
+
   handleSidebarNavigation(): void {
-    this.closeSidebar();
+    if (this.isCompactView) {
+      this.closeSidebar();
+    }
   }
 
   logout(): void {
@@ -55,6 +78,9 @@ export class AdminDashboardComponent {
 
     const compactView = window.innerWidth <= 1100;
     this.isCompactView = compactView;
+    if (compactView) {
+      this.isSidebarHovered = false;
+    }
 
     if (this.previousCompactView === null || this.previousCompactView !== compactView) {
       this.sidebarOpen = compactView ? false : true;

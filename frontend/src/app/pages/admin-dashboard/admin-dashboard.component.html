@@ -1,15 +1,20 @@
-<div class="admin-shell" [class.sidebar-collapsed]="!isCompactView && !sidebarOpen">
+<div class="admin-shell" [class.sidebar-collapsed]="!isCompactView && !isSidebarExpanded">
   @if (isCompactView && sidebarOpen) {
     <button class="sidebar-backdrop" type="button" aria-label="Close sidebar" (click)="closeSidebar()"></button>
   }
 
-  <aside class="admin-sidebar" [class.open]="sidebarOpen" [class.collapsed]="!isCompactView && !sidebarOpen">
+  <aside
+    class="admin-sidebar"
+    [class.open]="sidebarOpen"
+    [class.collapsed]="!isCompactView && !isSidebarExpanded"
+    (mouseenter)="openSidebarOnHover()"
+    (mouseleave)="closeSidebarOnHoverOut()">
     <div class="sidebar-header">
       <a class="brand-block" routerLink="/admin/dashboard" (click)="handleSidebarNavigation()">
       <span class="brand-badge">
         <img src="assets/img/IMG_0069.PNG" alt="Brew & Leaf logo">
       </span>
-      @if (sidebarOpen || isCompactView) {
+      @if (isSidebarExpanded) {
         <div>
         <strong>Brew & Leaf</strong>
         <small>Admin studio</small>
