@@ -1,18 +1,20 @@
-<div class="admin-shell">
+<div class="admin-shell" [class.sidebar-collapsed]="!isCompactView && !sidebarOpen">
   @if (isCompactView && sidebarOpen) {
     <button class="sidebar-backdrop" type="button" aria-label="Close sidebar" (click)="closeSidebar()"></button>
   }
 
-  <aside class="admin-sidebar" [class.open]="sidebarOpen">
+  <aside class="admin-sidebar" [class.open]="sidebarOpen" [class.collapsed]="!isCompactView && !sidebarOpen">
     <div class="sidebar-header">
       <a class="brand-block" routerLink="/admin/dashboard" (click)="handleSidebarNavigation()">
       <span class="brand-badge">
         <img src="assets/img/IMG_0069.PNG" alt="Brew & Leaf logo">
       </span>
-      <div>
+      @if (sidebarOpen || isCompactView) {
+        <div>
         <strong>Brew & Leaf</strong>
         <small>Admin studio</small>
-      </div>
+        </div>
+      }
       </a>
       @if (isCompactView) {
         <button type="button" class="sidebar-toggle sidebar-close" aria-label="Close sidebar" (click)="closeSidebar()">
@@ -47,11 +49,14 @@
   <main class="admin-main">
     <header class="admin-topbar">
       <div class="topbar-title">
-        @if (isCompactView) {
-          <button type="button" class="sidebar-toggle" aria-label="Open sidebar" (click)="toggleSidebar()">
-            <i class="bi bi-list"></i>
-          </button>
-        }
+        <button
+          type="button"
+          class="sidebar-toggle"
+          [attr.aria-label]="sidebarOpen ? 'Close sidebar' : 'Open sidebar'"
+          (click)="toggleSidebar()"
+        >
+          <i [class]="sidebarOpen ? 'bi bi-layout-sidebar-inset' : 'bi bi-list'"></i>
+        </button>
         <div>
         <p class="eyebrow">Operations</p>
         <h1>Brew & Leaf control center</h1>

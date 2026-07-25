@@ -13,6 +13,7 @@ import { AuthService } from '../../services/auth.service';
 export class AdminDashboardComponent {
   isCompactView = false;
   sidebarOpen = true;
+  private previousCompactView: boolean | null = null;
 
   constructor(private authService: AuthService, private router: Router) {
     this.updateSidebarState();
@@ -28,15 +29,11 @@ export class AdminDashboardComponent {
   }
 
   toggleSidebar(): void {
-    if (this.isCompactView) {
-      this.sidebarOpen = !this.sidebarOpen;
-    }
+    this.sidebarOpen = !this.sidebarOpen;
   }
 
   closeSidebar(): void {
-    if (this.isCompactView) {
-      this.sidebarOpen = false;
-    }
+    this.sidebarOpen = false;
   }
 
   handleSidebarNavigation(): void {
@@ -52,11 +49,17 @@ export class AdminDashboardComponent {
     if (typeof window === 'undefined') {
       this.isCompactView = false;
       this.sidebarOpen = true;
+      this.previousCompactView = false;
       return;
     }
 
     const compactView = window.innerWidth <= 1100;
     this.isCompactView = compactView;
-    this.sidebarOpen = compactView ? false : true;
+
+    if (this.previousCompactView === null || this.previousCompactView !== compactView) {
+      this.sidebarOpen = compactView ? false : true;
+    }
+
+    this.previousCompactView = compactView;
   }
 }
