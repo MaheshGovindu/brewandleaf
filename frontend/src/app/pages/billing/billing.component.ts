@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
@@ -36,13 +36,21 @@ export class BillingComponent implements OnInit {
   selectedProductForSize: Product | null = null;
   showCustomerSearch = false;
   customerSearchTerm = '';
+  isMobileView = false;
+  activeMobileSection: 'products' | 'billing' = 'billing';
 
   constructor(public apiService: ApiService) { }
 
   ngOnInit(): void {
+    this.updateMobileView();
     this.apiService.getProducts().subscribe(data => this.products = data);
     this.apiService.getCustomers().subscribe(data => this.customers = data);
     this.apiService.getOpenOrders().subscribe(data => this.openOrders = data);
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.updateMobileView();
   }
 
   get filteredCustomers(): Customer[] {
@@ -92,6 +100,10 @@ export class BillingComponent implements OnInit {
     if (order.payment_method) {
       this.paymentMethod = order.payment_method;
     }
+
+    if (this.isMobileView) {
+      this.activeMobileSection = 'billing';
+    }
   }
 
   get groupedAndFilteredProducts(): { [key: string]: Product[] } {
@@ -131,6 +143,10 @@ export class BillingComponent implements OnInit {
 
   selectCategory(category: string): void {
     this.selectedCategory = category;
+  }
+
+  showMobileSection(section: 'products' | 'billing'): void {
+    this.activeMobileSection = section;
   }
 
   sortedSizes(sizes: ProductSize[] = []): ProductSize[] {
@@ -206,6 +222,10 @@ export class BillingComponent implements OnInit {
     }
 
     this.closeSizeModal();
+
+    if (this.isMobileView) {
+      this.activeMobileSection = 'billing';
+    }
   }
 
   closeSizeModal(): void {
@@ -441,5 +461,24 @@ export class BillingComponent implements OnInit {
     this.invoiceNumber = '';
     this.paymentMethod = 'cash';
     this.apiService.getOpenOrders().subscribe(data => this.openOrders = data);
+
+    if (this.isMobileView) {
+      this.activeMobileSection = 'billing';
+    }
+  }
+
+  private updateMobileView(): void {
+    if (typeof window === 'undefined') {
+      this.isMobileView = false;
+      this.activeMobileSection = 'billing';
+      return;
+    }
+
+    this.isMobileView = window.innerWidth <= 768;
+    if (!this.isMobileView) {
+      this.activeMobileSection = 'products';
+    } else if (!this.activeMobileSection) {
+      this.activeMobileSection = 'billing';
+    }
   }
 }

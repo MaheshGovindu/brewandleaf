@@ -3,6 +3,10 @@
   gap: 1.25rem;
 }
 
+.mobile-billing-switch {
+  display: none;
+}
+
 .billing-hero,
 .selection-area,
 .cart-area {
@@ -314,6 +318,17 @@ select {
 .empty-state i {
   font-size: 1.8rem;
   color: var(--color-primary);
+}
+
+.empty-state-btn {
+  margin-top: 0.9rem;
+  padding: 0.8rem 1rem;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #4b3621, #8b5e34);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .cart-summary {
@@ -661,6 +676,53 @@ select {
 }
 
 @media (max-width: 768px) {
+  .mobile-billing-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    position: sticky;
+    top: 0.75rem;
+    z-index: 15;
+  }
+
+  .mobile-billing-switch button {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba(75, 54, 33, 0.12);
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--color-primary);
+    font-weight: 700;
+    box-shadow: 0 16px 36px rgba(75, 54, 33, 0.08);
+  }
+
+  .mobile-billing-switch button span {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 0.45rem;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    background: rgba(75, 54, 33, 0.08);
+  }
+
+  .mobile-billing-switch button.active {
+    background: linear-gradient(135deg, #4b3621, #8b5e34);
+    color: white;
+    border-color: transparent;
+  }
+
+  .mobile-billing-switch button.active span {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .mobile-hidden {
+    display: none;
+  }
+
   .billing-hero,
   .panel-head,
   .cart-header,
@@ -678,5 +740,18 @@ select {
   .modal-content {
     width: 95%;
     padding: 1.5rem;
+  }
+
+  .billing-hero {
+    padding: 1.2rem;
+  }
+
+  .selection-area,
+  .cart-area {
+    padding: 1.1rem;
+  }
+
+  .hero-card {
+    min-width: 100%;
   }
 }

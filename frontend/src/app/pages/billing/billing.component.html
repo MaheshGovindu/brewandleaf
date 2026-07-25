@@ -11,8 +11,27 @@
      </div>
   </section>
 
+  @if (isMobileView) {
+    <div class="mobile-billing-switch">
+      <button
+        type="button"
+        [class.active]="activeMobileSection === 'billing'"
+        (click)="showMobileSection('billing')">
+        Billing
+        <span>{{cart.length}}</span>
+      </button>
+      <button
+        type="button"
+        [class.active]="activeMobileSection === 'products'"
+        (click)="showMobileSection('products')">
+        Products
+        <span>{{products.length}}</span>
+      </button>
+    </div>
+  }
+
   <div class="billing-container">
-    <div class="selection-area">
+    <div class="selection-area" [class.mobile-hidden]="isMobileView && activeMobileSection !== 'products'">
       <div class="panel-head">
         <div>
           <p class="eyebrow">Select items</p>
@@ -69,7 +88,7 @@
       </div>
     </div>
 
-    <div class="cart-area">
+    <div class="cart-area" [class.mobile-hidden]="isMobileView && activeMobileSection !== 'billing'">
       <div class="cart-header">
         <div>
           <p class="eyebrow">Current order</p>
@@ -150,6 +169,11 @@
         <div class="empty-state">
           <i class="bi bi-bag"></i>
           <p>Select products from the left to start billing.</p>
+          @if (isMobileView) {
+            <button type="button" class="empty-state-btn" (click)="showMobileSection('products')">
+              Browse Products
+            </button>
+          }
         </div>
       </ng-template>
 
