@@ -1,6 +1,11 @@
 <div class="admin-shell">
-  <aside class="admin-sidebar">
-    <a class="brand-block" routerLink="/admin/dashboard">
+  @if (isCompactView && sidebarOpen) {
+    <button class="sidebar-backdrop" type="button" aria-label="Close sidebar" (click)="closeSidebar()"></button>
+  }
+
+  <aside class="admin-sidebar" [class.open]="sidebarOpen">
+    <div class="sidebar-header">
+      <a class="brand-block" routerLink="/admin/dashboard" (click)="handleSidebarNavigation()">
       <span class="brand-badge">
         <img src="assets/img/IMG_0069.PNG" alt="Brew & Leaf logo">
       </span>
@@ -8,21 +13,27 @@
         <strong>Brew & Leaf</strong>
         <small>Admin studio</small>
       </div>
-    </a>
+      </a>
+      @if (isCompactView) {
+        <button type="button" class="sidebar-toggle sidebar-close" aria-label="Close sidebar" (click)="closeSidebar()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      }
+    </div>
 
     <div class="sidebar-copy">
       <p class="eyebrow">Store control</p>
   </div>
     <nav class="sidebar-nav">
-      <a routerLink="/admin/dashboard" routerLinkActive="active"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
-      <a routerLink="/admin/billing" routerLinkActive="active"><i class="bi bi-receipt"></i><span>Billing</span></a>
-      <a routerLink="/admin/transactions" routerLinkActive="active"><i class="bi bi-journal-text"></i><span>Transactions</span></a>
-      <a routerLink="/admin/products" routerLinkActive="active"><i class="bi bi-cup-straw"></i><span>Products</span></a>
+      <a routerLink="/admin/dashboard" routerLinkActive="active" (click)="handleSidebarNavigation()"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+      <a routerLink="/admin/billing" routerLinkActive="active" (click)="handleSidebarNavigation()"><i class="bi bi-receipt"></i><span>Billing</span></a>
+      <a routerLink="/admin/transactions" routerLinkActive="active" (click)="handleSidebarNavigation()"><i class="bi bi-journal-text"></i><span>Transactions</span></a>
+      <a routerLink="/admin/products" routerLinkActive="active" (click)="handleSidebarNavigation()"><i class="bi bi-cup-straw"></i><span>Products</span></a>
       <!-- <a routerLink="/admin/banners" routerLinkActive="active"><i class="bi bi-images"></i><span>Banners</span></a> -->
       <!-- <a routerLink="/admin/testimonials" routerLinkActive="active"><i class="bi bi-star"></i><span>Testimonials</span></a> -->
-      <a routerLink="/admin/categories" routerLinkActive="active"><i class="bi bi-grid"></i><span>Categories</span></a>
-      <a routerLink="/admin/sub-categories" routerLinkActive="active"><i class="bi bi-diagram-3"></i><span>Sub-Categories</span></a>
-      <a routerLink="/admin/credit-debit" routerLinkActive="active"><i class="bi bi-credit-card"></i><span>Credit & Debit</span></a>
+      <a routerLink="/admin/categories" routerLinkActive="active" (click)="handleSidebarNavigation()"><i class="bi bi-grid"></i><span>Categories</span></a>
+      <a routerLink="/admin/sub-categories" routerLinkActive="active" (click)="handleSidebarNavigation()"><i class="bi bi-diagram-3"></i><span>Sub-Categories</span></a>
+      <a routerLink="/admin/credit-debit" routerLinkActive="active" (click)="handleSidebarNavigation()"><i class="bi bi-credit-card"></i><span>Credit & Debit</span></a>
       <!-- <a routerLink="/admin/settings" routerLinkActive="active"><i class="bi bi-gear"></i><span>Settings</span></a> -->
     </nav>
 
@@ -35,9 +46,16 @@
 
   <main class="admin-main">
     <header class="admin-topbar">
-      <div>
+      <div class="topbar-title">
+        @if (isCompactView) {
+          <button type="button" class="sidebar-toggle" aria-label="Open sidebar" (click)="toggleSidebar()">
+            <i class="bi bi-list"></i>
+          </button>
+        }
+        <div>
         <p class="eyebrow">Operations</p>
         <h1>Brew & Leaf control center</h1>
+        </div>
       </div>
       <div class="topbar-meta">
         <div class="meta-pill user-pill"><i class="bi bi-person-circle"></i><span>{{userName}}</span></div>

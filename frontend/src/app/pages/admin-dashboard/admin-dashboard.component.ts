@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -11,14 +11,52 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./admin-dashboard.component.scss']
 })
 export class AdminDashboardComponent {
-  constructor(private authService: AuthService, private router: Router) {}
+  isCompactView = false;
+  sidebarOpen = true;
+
+  constructor(private authService: AuthService, private router: Router) {
+    this.updateSidebarState();
+  }
 
   get userName(): string {
     return this.authService.getUser()?.name || 'Admin';
   }
 
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    this.updateSidebarState();
+  }
+
+  toggleSidebar(): void {
+    if (this.isCompactView) {
+      this.sidebarOpen = !this.sidebarOpen;
+    }
+  }
+
+  closeSidebar(): void {
+    if (this.isCompactView) {
+      this.sidebarOpen = false;
+    }
+  }
+
+  handleSidebarNavigation(): void {
+    this.closeSidebar();
+  }
+
   logout(): void {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  private updateSidebarState(): void {
+    if (typeof window === 'undefined') {
+      this.isCompactView = false;
+      this.sidebarOpen = true;
+      return;
+    }
+
+    const compactView = window.innerWidth <= 1100;
+    this.isCompactView = compactView;
+    this.sidebarOpen = compactView ? false : true;
   }
 }
