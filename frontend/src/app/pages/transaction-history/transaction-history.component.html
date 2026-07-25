@@ -2,7 +2,22 @@
   <div>
     <p class="eyebrow">Transaction history</p>
     <h2>Transaction Records</h2>
-    <p>View all transaction details, date-wise with payment method breakdown and quantities.</p>
+    <p>View sales details date-wise with price, costing, and realised profit.</p>
+  </div>
+</section>
+
+<section class="filter-card">
+  <div class="filter-group">
+    <label for="startDate">From date</label>
+    <input id="startDate" type="date" [(ngModel)]="startDate">
+  </div>
+  <div class="filter-group">
+    <label for="endDate">To date</label>
+    <input id="endDate" type="date" [(ngModel)]="endDate">
+  </div>
+  <div class="filter-actions">
+    <button type="button" class="btn-primary" (click)="applyFilters()">Apply</button>
+    <button type="button" class="btn-secondary" (click)="resetFilters()">Reset</button>
   </div>
 </section>
 
@@ -33,6 +48,13 @@
             <i class="bi bi-currency-rupee"></i>
             Total: {{ getDateSummary(date).total | currency:'INR':'symbol':'1.0-0' }}
           </span>
+          <span class="summary-item">
+            Cost: {{ getDateSummary(date).totalCost | currency:'INR':'symbol':'1.0-0' }}
+          </span>
+         
+          <span class="summary-item">
+            Profit: {{ getDateSummary(date).totalProfit | currency:'INR':'symbol':'1.0-0' }}
+          </span>
         </div>
       </div>
     </div>
@@ -48,7 +70,9 @@
               <th>Payment</th>
               <th>Items</th>
               <th>Qty</th>
-              <th>Total</th>
+              <th>Sales</th>
+              <th>Cost</th>
+              <th>Profit</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -70,10 +94,13 @@
               <td>{{ tx.item_count }}</td>
               <td>{{ tx.total_quantity }}</td>
               <td class="amount">{{ tx.final_amount | currency:'INR':'symbol':'1.0-0' }}</td>
+              <td>{{ (tx.total_cost || 0) | currency:'INR':'symbol':'1.0-0' }}</td>
+              <td class="amount">{{ (tx.total_profit || 0) | currency:'INR':'symbol':'1.0-0' }}</td>
               <td>
                 <span class="status-badge" [class.closed]="tx.order_status === 'closed'" [class.open]="tx.order_status === 'open'">
                   {{ tx.order_status | titlecase }}
                 </span>
+                <small *ngIf="tx.items_summary" class="item-summary">{{ tx.items_summary }}</small>
               </td>
             </tr>
           </tbody>

@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../../services/api.service';
-import { Stats, DailyStats } from '../../../models/brew-and-leaf.models';
+import { Stats, DailyStats, MonthlyStats } from '../../../models/brew-and-leaf.models';
 import { Chart, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -17,6 +17,16 @@ export class StatsComponent implements OnInit, AfterViewInit {
   stats: Stats = {
     total_revenue: 0,
     today_revenue: 0,
+    total_cost: 0,
+    total_margin: 0,
+    total_profit: 0,
+    today_cost: 0,
+    today_margin: 0,
+    today_profit: 0,
+    current_month_revenue: 0,
+    current_month_cost: 0,
+    current_month_margin: 0,
+    current_month_profit: 0,
     total_orders: 0,
     today_orders: 0,
     total_products: 0,
@@ -26,6 +36,7 @@ export class StatsComponent implements OnInit, AfterViewInit {
   };
 
   dailyStats: DailyStats[] = [];
+  monthlyStats: MonthlyStats[] = [];
 
   @ViewChild('salesChart') salesChartRef!: ElementRef<HTMLCanvasElement>;
   private salesChart?: Chart;
@@ -49,6 +60,9 @@ export class StatsComponent implements OnInit, AfterViewInit {
     });
 
     this.initChart();
+    this.apiService.getMonthlyStats({ limit: 12 }).subscribe(data => {
+      this.monthlyStats = data;
+    });
   }
 
   initChart(): void {
@@ -76,7 +90,7 @@ export class StatsComponent implements OnInit, AfterViewInit {
         labels: data.map(d => d.date),
         datasets: [
           {
-            label: 'Daily Revenue',
+            label: 'Daily Sales',
             data: data.map(d => d.total_sales || 0),
             borderColor: '#4B3621',
             backgroundColor: 'rgba(75, 54, 33, 0.1)',
@@ -84,18 +98,18 @@ export class StatsComponent implements OnInit, AfterViewInit {
             tension: 0.4
           },
           {
-            label: 'Total Credit',
-            data: data.map(d => d.total_credit || 0),
-            borderColor: '#00704A',
-            backgroundColor: 'rgba(0, 112, 74, 0.1)',
+            label: 'Daily Cost',
+            data: data.map(d => d.total_cost || 0),
+            borderColor: '#9b6b3f',
+            backgroundColor: 'rgba(155, 107, 63, 0.08)',
             fill: true,
             tension: 0.4
           },
           {
-            label: 'Total Debit',
-            data: data.map(d => d.total_debit || 0),
-            borderColor: '#9E2323',
-            backgroundColor: 'rgba(158, 35, 35, 0.1)',
+            label: 'Daily Profit',
+            data: data.map(d => d.total_profit || 0),
+            borderColor: '#00704A',
+            backgroundColor: 'rgba(0, 112, 74, 0.1)',
             fill: true,
             tension: 0.4
           }

@@ -25,6 +25,21 @@
     </div>
   </article>
   <article class="stat-card">
+    <div class="stat-icon cost"><i class="bi bi-wallet2"></i></div>
+    <div class="stat-info">
+      <p>Total Cost</p>
+      <h3>{{stats.total_cost | currency:'INR':'symbol':'1.0-0'}}</h3>
+    </div>
+  </article>
+  <article class="stat-card">
+    <div class="stat-icon profit"><i class="bi bi-graph-up-arrow"></i></div>
+    <div class="stat-info">
+      <p>Total Profit</p>
+      <h3>{{stats.total_profit | currency:'INR':'symbol':'1.0-0'}}</h3>
+    </div>
+  </article>
+ 
+  <article class="stat-card">
     <div class="stat-icon orders"><i class="bi bi-cart-check"></i></div>
     <div class="stat-info">
       <p>Total Orders</p>
@@ -66,6 +81,20 @@
       <h3>{{stats.total_debit | currency:'INR':'symbol':'1.0-0'}}</h3>
     </div>
   </article>
+  <article class="stat-card">
+    <div class="stat-icon month"><i class="bi bi-calendar3"></i></div>
+    <div class="stat-info">
+      <p>Month Revenue</p>
+      <h3>{{stats.current_month_revenue | currency:'INR':'symbol':'1.0-0'}}</h3>
+    </div>
+  </article>
+  <article class="stat-card">
+    <div class="stat-icon month-profit"><i class="bi bi-bar-chart-line"></i></div>
+    <div class="stat-info">
+      <p>Month Profit</p>
+      <h3>{{stats.current_month_profit | currency:'INR':'symbol':'1.0-0'}}</h3>
+    </div>
+  </article>
 </section>
 
 <section class="dashboard-layout">
@@ -80,13 +109,56 @@
   </div>
 
   <div class="insight-card">
-    <p class="eyebrow">What this setup gives you</p>
-    <h3>Admin-first content control</h3>
-    <ul>
-      <li>Homepage banners managed from the new banner studio.</li>
-      <li>Menu groups powered by categories, sub-categories and products.</li>
-      <li>Billing and product pages styled consistently with the new brand system.</li>
-      <li>Credit/debit tracking for accurate financial management.</li>
-    </ul>
+    <p class="eyebrow">Current month</p>
+    <h3>Monthly finance snapshot</h3>
+    <div class="month-summary">
+      <div>
+        <span>Revenue</span>
+        <strong>{{stats.current_month_revenue | currency:'INR':'symbol':'1.0-0'}}</strong>
+      </div>
+      <div>
+        <span>Cost</span>
+        <strong>{{stats.current_month_cost | currency:'INR':'symbol':'1.0-0'}}</strong>
+      </div>
+      <div>
+        <span>Margin</span>
+        <strong>{{stats.current_month_margin | currency:'INR':'symbol':'1.0-0'}}</strong>
+      </div>
+      <div>
+        <span>Profit</span>
+        <strong>{{stats.current_month_profit | currency:'INR':'symbol':'1.0-0'}}</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="monthly-card" *ngIf="monthlyStats.length">
+  <div class="card-head">
+    <div>
+      <p class="eyebrow">Month wise</p>
+      <h3>Monthly profit and costing</h3>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Sales</th>
+          <th>Cost</th>
+          <th>Margin</th>
+          <th>Profit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let month of monthlyStats">
+          <td>{{ month.month }}</td>
+          <td>{{ (month.total_sales || 0) | currency:'INR':'symbol':'1.0-0' }}</td>
+          <td>{{ (month.total_cost || 0) | currency:'INR':'symbol':'1.0-0' }}</td>
+          <td>{{ (month.total_margin || 0) | currency:'INR':'symbol':'1.0-0' }}</td>
+          <td>{{ (month.total_profit || 0) | currency:'INR':'symbol':'1.0-0' }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </section>

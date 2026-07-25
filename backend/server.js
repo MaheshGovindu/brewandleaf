@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
+const db = require('./config/db');
 
 const app = express();
 app.use(express.json());
@@ -23,4 +24,11 @@ app.use('/api/brewandleaf', brewAndLeafRoutes);
 app.use('/uploads', express.static(uploadDir));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+db.ready
+  .then(() => {
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  })
+  .catch((error) => {
+    console.error('Unable to start server:', error.message);
+    process.exit(1);
+  });

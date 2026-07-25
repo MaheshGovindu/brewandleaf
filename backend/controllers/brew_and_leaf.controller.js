@@ -2,6 +2,105 @@ const db = require('../config/db');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
+const queryAsync = (sql, params = []) => new Promise((resolve, reject) => {
+    db.query(sql, params, (err, results) => {
+        if (err) {
+            reject(err);
+            return;
+        }
+        resolve(results);
+    });
+});
+
+const beginTransactionAsync = () => new Promise((resolve, reject) => {
+    db.beginTransaction(err => err ? reject(err) : resolve());
+});
+
+const commitAsync = () => new Promise((resolve, reject) => {
+    db.commit(err => err ? reject(err) : resolve());
+});
+
+const rollbackAsync = () => new Promise(resolve => {
+    db.rollback(() => resolve());
+});
+
+const toMoney = (value) => Number((Number(value) || 0).toFixed(2));
+const toPositiveInt = (value) => Math.max(1, Number(value) || 1);
+const normalizeSize = (size) => {
+    if (!size || size === 'default') {
+        return null;
+    }
+    return String(size).trim().toLowerCase();
+};
+
+const buildInvoiceNumber = (id) => `BWL-${String(id).padStart(8, '0')}`;
+const resolveInvoiceNumber = (order) => order.invoice_number || buildInvoiceNumber(order.id);
+
+async function getPricingMaps(items) {
+    const productIds = [...new Set(items.map(item => Number(item.product_id)).filter(Boolean))];
+    if (!productIds.length) {
+        return { productMap: new Map(), sizeMap: new Map() };
+    }
+
+    const products = await queryAsync(
+        'SELECT id, name, price, costing FROM products WHERE id IN (?)',
+        [productIds]
+    );
+
+    const sizes = await queryAsync(
+        'SELECT id, product_id, size, price, costing FROM product_sizes WHERE product_id IN (?)',
+        [productIds]
+    );
+
+    const productMap = new Map(products.map(product => [Number(product.id), product]));
+    const sizeMap = new Map(
+        sizes.map(size => [`${Number(size.product_id)}:${String(size.size).toLowerCase()}`, size])
+    );
+
+    return { productMap, sizeMap };
+}
+
+async function prepareOrderItems(items) {
+    const { productMap, sizeMap } = await getPricingMaps(items);
+
+    return items.map(item => {
+        const productId = Number(item.product_id);
+        const product = productMap.get(productId);
+        if (!product) {
+            throw new Error(`Product ${productId} not found`);
+        }
+
+        const sizeKey = normalizeSize(item.product_size || item.size);
+        const sizeRecord = sizeKey ? sizeMap.get(`${productId}:${sizeKey}`) : null;
+        const quantity = toPositiveInt(item.quantity);
+        const unitPrice = toMoney(sizeRecord?.price ?? item.unit_price ?? product.price);
+        const unitCost = toMoney(sizeRecord?.costing ?? product.costing);
+        const totalPrice = toMoney(item.total_price ?? unitPrice * quantity);
+        const totalCost = toMoney(unitCost * quantity);
+        const totalProfit = toMoney(totalPrice - totalCost);
+
+        return {
+            product_id: productId,
+            product_size: sizeRecord?.size || item.product_size || item.size || null,
+            quantity,
+            unit_price: unitPrice,
+            unit_cost: unitCost,
+            total_price: totalPrice,
+            total_cost: totalCost,
+            total_profit: totalProfit
+        };
+    });
+}
+
+function sumPreparedItems(items) {
+    return items.reduce((acc, item) => {
+        acc.totalAmount += toMoney(item.total_price);
+        acc.totalCost += toMoney(item.total_cost);
+        acc.grossProfit += toMoney(item.total_profit);
+        return acc;
+    }, { totalAmount: 0, totalCost: 0, grossProfit: 0 });
+}
+
 // Auth
 exports.login = (req, res) => {
     const { email, password } = req.body;
@@ -94,7 +193,21 @@ exports.deleteSubCategory = (req, res) => {
 // Products
 exports.getProducts = (req, res) => {
     const sql = `
-        SELECT p.*, c.name as category_name, s.name as sub_category_name 
+        SELECT
+            p.id,
+            p.category_id,
+            p.sub_category_id,
+            p.name,
+            p.description,
+            p.price,
+            p.costing,
+            p.discount,
+            p.inventory_count,
+            p.image_url,
+            p.aspect_ratio,
+            p.created_at,
+            c.name as category_name,
+            s.name as sub_category_name 
         FROM products p 
         LEFT JOIN categories c ON p.category_id = c.id 
         LEFT JOIN sub_categories s ON p.sub_category_id = s.id
@@ -119,7 +232,12 @@ exports.getProducts = (req, res) => {
 
                 const sizesByProduct = sizes.reduce((acc, row) => {
                     acc[row.product_id] = acc[row.product_id] || [];
-                    acc[row.product_id].push({ id: row.id, size: row.size, price: row.price, costing: row.costing });
+                    acc[row.product_id].push({
+                        id: row.id,
+                        size: row.size,
+                        price: row.price,
+                        costing: row.costing
+                    });
                     return acc;
                 }, {});
 
@@ -184,7 +302,27 @@ exports.deleteProduct = (req, res) => {
 // Get single product by id with images and sizes
 exports.getProductById = (req, res) => {
     const id = req.params.id;
-    const sql = `SELECT p.*, c.name as category_name, s.name as sub_category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id LEFT JOIN sub_categories s ON p.sub_category_id = s.id WHERE p.id = ?`;
+    const sql = `
+        SELECT
+            p.id,
+            p.category_id,
+            p.sub_category_id,
+            p.name,
+            p.description,
+            p.price,
+            p.costing,
+            p.discount,
+            p.inventory_count,
+            p.image_url,
+            p.aspect_ratio,
+            p.created_at,
+            c.name as category_name,
+            s.name as sub_category_name
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        LEFT JOIN sub_categories s ON p.sub_category_id = s.id
+        WHERE p.id = ?
+    `;
     db.query(sql, [id], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         if (results.length === 0) return res.status(404).json({ message: 'Product not found' });
@@ -404,109 +542,111 @@ exports.updateSettings = (req, res) => {
 };
 
 // Orders & Billing
-exports.createOrder = (req, res) => {
-    console.log('Creating order with payload:', JSON.stringify(req.body, null, 2));
-    
-    const { customer_id, customer_name, customer_email, customer_phone, items, total_amount, discount_applied, final_amount, payment_method, invoice_number, loyalty_points_used = 0, order_status = 'closed' } = req.body;
-    
-    if (!items || !Array.isArray(items)) {
+exports.createOrder = async (req, res) => {
+    const {
+        customer_id,
+        customer_name,
+        customer_email,
+        customer_phone,
+        items,
+        total_amount,
+        discount_applied,
+        final_amount,
+        payment_method,
+        invoice_number,
+        loyalty_points_used = 0,
+        order_status = 'closed'
+    } = req.body;
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ error: 'Items array is required' });
     }
-    
-    db.beginTransaction(err => {
-        if (err) return res.status(500).json({ error: err.message });
 
-        // Calculate loyalty points earned (1 point per ₹10 spent)
-        const loyalty_points_earned = Math.floor(final_amount / 10);
-        
-        const orderSql = 'INSERT INTO orders (invoice_number, customer_id, customer_name, customer_email, customer_phone, total_amount, discount_applied, final_amount, payment_method, loyalty_points_earned, loyalty_points_used, order_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
-        db.query(orderSql, [invoice_number, customer_id, customer_name, customer_email, customer_phone, total_amount, discount_applied, final_amount, payment_method, loyalty_points_earned, loyalty_points_used, order_status], (err, result) => {
-            if (err) {
-                console.error('Error inserting order:', err);
-                return db.rollback(() => res.status(500).json({ error: err.message }));
-            }
-            
-            const orderId = result.insertId;
-            console.log('Order created with ID:', orderId);
-            
-            // Map items properly - handle both size and product_size
-            const itemValues = items.map(item => [
-                orderId, 
-                item.product_id, 
-                item.product_size || item.size || null, // Accept either field
-                item.quantity, 
-                Number(item.unit_price), 
-                Number(item.total_price)
-            ]);
-            
-            console.log('Inserting items:', itemValues);
-            
-            const itemSql = 'INSERT INTO order_items (order_id, product_id, product_size, quantity, unit_price, total_price) VALUES ?';
-            
-            db.query(itemSql, [itemValues], (err) => {
-                if (err) {
-                    console.error('Error inserting order items:', err);
-                    return db.rollback(() => res.status(500).json({ error: err.message }));
-                }
+    try {
+        const preparedItems = await prepareOrderItems(items);
+        const orderTotals = sumPreparedItems(preparedItems);
+        const safeDiscount = toMoney(discount_applied);
+        const safeFinalAmount = toMoney(final_amount ?? (orderTotals.totalAmount - safeDiscount));
+        const loyaltyPointsEarned = Math.floor(safeFinalAmount / 10);
 
-                // Update inventory
-                const inventoryPromises = items.map(item => {
-                    return new Promise((resolve, reject) => {
-                        db.query('UPDATE products SET inventory_count = inventory_count - ? WHERE id = ?', [item.quantity, item.product_id], (err, res) => {
-                            if (err) reject(err);
-                            else resolve(res);
-                        });
-                    });
-                });
+        await beginTransactionAsync();
 
-                // Update customer loyalty points and stats if customer exists
-                let customerPromise = Promise.resolve();
-                if (customer_id) {
-                    customerPromise = new Promise((resolve, reject) => {
-                        const pointsChange = loyalty_points_earned - loyalty_points_used;
-                        db.query('UPDATE customers SET loyalty_points = loyalty_points + ?, total_orders = total_orders + 1, total_spent = total_spent + ? WHERE id = ?', [pointsChange, final_amount, customer_id], (err) => {
-                            if (err) reject(err);
-                            else resolve();
-                        });
-                    });
-                }
+        const orderResult = await queryAsync(
+            `INSERT INTO orders
+             (invoice_number, customer_name, customer_email, customer_phone, total_amount, discount_applied, final_amount, payment_method, loyalty_points_earned, loyalty_points_used, order_status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                invoice_number || null,
+                customer_name,
+                customer_email,
+                customer_phone,
+                toMoney(total_amount ?? orderTotals.totalAmount),
+                safeDiscount,
+                safeFinalAmount,
+                payment_method || 'cash',
+                loyaltyPointsEarned,
+                Number(loyalty_points_used) || 0,
+                order_status
+            ]
+        );
 
-                // Update daily stats
-                const today = new Date().toISOString().split('T')[0];
-                const updateStatSql = `
-                    INSERT INTO daily_stats (date, total_sales)
-                    VALUES (?, ?)
-                    ON DUPLICATE KEY UPDATE
-                        total_sales = total_sales + VALUES(total_sales)
-                `;
-                
-                Promise.all([...inventoryPromises, customerPromise])
-                    .then(() => {
-                        db.query(updateStatSql, [today, final_amount], (err) => {
-                            if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-                            
-                            db.commit(err => {
-                                if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-                                console.log('Order committed successfully!');
-                                res.json({ message: 'Order created successfully', orderId, invoice_number });
-                            });
-                        });
-                    })
-                    .catch(err => db.rollback(() => res.status(500).json({ error: err.message })));
-            });
-        });
-    });
+        const orderId = orderResult.insertId;
+        const fallbackInvoiceNumber = invoice_number || buildInvoiceNumber(orderId);
+        if (!invoice_number) {
+            await queryAsync('UPDATE orders SET invoice_number = ? WHERE id = ?', [fallbackInvoiceNumber, orderId]);
+        }
+
+        const itemValues = preparedItems.map(item => [
+            orderId,
+            item.product_id,
+            item.product_size,
+            item.quantity,
+            item.unit_price,
+            item.unit_cost,
+            item.total_price,
+            item.total_cost,
+            item.total_profit
+        ]);
+
+        await queryAsync(
+            `INSERT INTO order_items
+             (order_id, product_id, product_size, quantity, unit_price, unit_cost, total_price, total_cost, total_profit)
+             VALUES ?`,
+            [itemValues]
+        );
+
+        for (const item of preparedItems) {
+            await queryAsync(
+                'UPDATE products SET inventory_count = GREATEST(inventory_count - ?, 0) WHERE id = ?',
+                [item.quantity, item.product_id]
+            );
+        }
+
+        // if (customer_id) {
+        //     const pointsChange = loyaltyPointsEarned - (Number(loyalty_points_used) || 0);
+        //     await queryAsync(
+        //         'UPDATE customers SET loyalty_points = loyalty_points + ?, total_orders = total_orders + 1, total_spent = total_spent + ? WHERE id = ?',
+        //         [pointsChange, safeFinalAmount, customer_id]
+        //     );
+        // }
+
+        await commitAsync();
+        res.json({ message: 'Order created successfully', orderId, invoice_number: fallbackInvoiceNumber });
+    } catch (error) {
+        await rollbackAsync();
+        res.status(500).json({ error: error.message });
+    }
 };
 
 exports.getOrders = (req, res) => {
-    db.query('SELECT * FROM orders ORDER BY created_at DESC', (err, results) => {
+    db.query('SELECT *, COALESCE(invoice_number, CONCAT("BWL-", LPAD(id, 8, "0"))) AS invoice_number FROM orders ORDER BY created_at DESC', (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
     });
 };
 
 exports.getOpenOrders = (req, res) => {
-    db.query('SELECT * FROM orders WHERE order_status = "open" ORDER BY created_at DESC', (err, orders) => {
+    db.query('SELECT *, COALESCE(invoice_number, CONCAT("BWL-", LPAD(id, 8, "0"))) AS invoice_number FROM orders WHERE order_status = "open" ORDER BY created_at DESC', (err, orders) => {
         if (err) return res.status(500).json({ error: err.message });
         
         if (orders.length === 0) {
@@ -515,7 +655,24 @@ exports.getOpenOrders = (req, res) => {
         
         const orderIds = orders.map(o => o.id);
         // Use LEFT JOIN to get items even if some products are deleted
-        db.query('SELECT oi.*, p.name FROM order_items oi LEFT JOIN products p ON oi.product_id = p.id WHERE oi.order_id IN (?)', [orderIds], (err, items) => {
+        db.query(`
+            SELECT
+                oi.id,
+                oi.order_id,
+                oi.product_id,
+                oi.product_size,
+                oi.quantity,
+                oi.unit_price,
+                oi.unit_cost,
+                ROUND(oi.unit_price - oi.unit_cost, 2) AS unit_profit,
+                oi.total_price,
+                oi.total_cost,
+                oi.total_profit,
+                p.name
+            FROM order_items oi
+            LEFT JOIN products p ON oi.product_id = p.id
+            WHERE oi.order_id IN (?)
+        `, [orderIds], (err, items) => {
             if (err) {
                 console.error('Error fetching order items:', err);
                 // If items query failed, still return orders with empty items
@@ -545,8 +702,25 @@ exports.getOpenOrders = (req, res) => {
 };
 
 exports.getOrderById = (req, res) => {
-    const orderSql = 'SELECT o.*, c.name as customer_name, c.loyalty_points FROM orders o LEFT JOIN customers c ON o.customer_id = c.id WHERE o.id = ?';
-    const itemsSql = 'SELECT oi.*, p.name FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = ?';
+    const orderSql = 'SELECT o.*, COALESCE(o.invoice_number, CONCAT("BWL-", LPAD(o.id, 8, "0"))) AS invoice_number, c.name as customer_name, c.loyalty_points FROM orders o LEFT JOIN customers c ON o.customer_id = c.id WHERE o.id = ?';
+    const itemsSql = `
+        SELECT
+            oi.id,
+            oi.order_id,
+            oi.product_id,
+            oi.product_size,
+            oi.quantity,
+            oi.unit_price,
+            oi.unit_cost,
+            ROUND(oi.unit_price - oi.unit_cost, 2) AS unit_profit,
+            oi.total_price,
+            oi.total_cost,
+            oi.total_profit,
+            p.name
+        FROM order_items oi
+        LEFT JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ?
+    `;
     
     db.query(orderSql, [req.params.id], (err, orders) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -559,56 +733,66 @@ exports.getOrderById = (req, res) => {
     });
 };
 
-exports.addItemsToOrder = (req, res) => {
-    const { orderId, items } = req.body;
-    
-    db.beginTransaction(err => {
-        if (err) return res.status(500).json({ error: err.message });
-        
-        // Get current order
-        db.query('SELECT * FROM orders WHERE id = ?', [orderId], (err, orders) => {
-            if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-            if (orders.length === 0) return db.rollback(() => res.status(404).json({ message: 'Order not found' }));
-            if (orders[0].order_status !== 'open') return db.rollback(() => res.status(400).json({ message: 'Order is already closed' }));
-            
-            const order = orders[0];
-            const itemsTotal = items.reduce((sum, item) => sum + item.total_price, 0);
-            const newTotalAmount = order.total_amount + itemsTotal;
-            const newFinalAmount = newTotalAmount - order.discount_applied;
-            
-            // Insert new items
-            const itemSql = 'INSERT INTO order_items (order_id, product_id, product_size, quantity, unit_price, total_price) VALUES ?';
-            const itemValues = items.map(item => [orderId, item.product_id, item.size, item.quantity, item.unit_price, item.total_price]);
-            
-            db.query(itemSql, [itemValues], (err) => {
-                if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-                
-                // Update order totals
-                db.query('UPDATE orders SET total_amount = ?, final_amount = ? WHERE id = ?', [newTotalAmount, newFinalAmount, orderId], (err) => {
-                    if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-                    
-                    // Update inventory
-                    const inventoryPromises = items.map(item => {
-                        return new Promise((resolve, reject) => {
-                            db.query('UPDATE products SET inventory_count = inventory_count - ? WHERE id = ?', [item.quantity, item.product_id], (err, res) => {
-                                if (err) reject(err);
-                                else resolve(res);
-                            });
-                        });
-                    });
-                    
-                    Promise.all(inventoryPromises)
-                        .then(() => {
-                            db.commit(err => {
-                                if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-                                res.json({ message: 'Items added successfully' });
-                            });
-                        })
-                        .catch(err => db.rollback(() => res.status(500).json({ error: err.message })));
-                });
-            });
-        });
-    });
+exports.addItemsToOrder = async (req, res) => {
+    const payloadOrderId = Number(req.params.id || req.body.orderId);
+    const items = Array.isArray(req.body.items) ? req.body.items : [];
+
+    if (!payloadOrderId || !items.length) {
+        return res.status(400).json({ error: 'Order id and items are required' });
+    }
+
+    try {
+        const preparedItems = await prepareOrderItems(items);
+        const orderTotals = sumPreparedItems(preparedItems);
+        await beginTransactionAsync();
+
+        const orders = await queryAsync('SELECT * FROM orders WHERE id = ?', [payloadOrderId]);
+        if (!orders.length) {
+            await rollbackAsync();
+            return res.status(404).json({ message: 'Order not found' });
+        }
+        if (orders[0].order_status !== 'open') {
+            await rollbackAsync();
+            return res.status(400).json({ message: 'Order is already closed' });
+        }
+
+        const order = orders[0];
+        const newTotalAmount = toMoney(Number(order.total_amount) + orderTotals.totalAmount);
+        const newFinalAmount = toMoney(newTotalAmount - Number(order.discount_applied || 0));
+        const itemValues = preparedItems.map(item => [
+            payloadOrderId,
+            item.product_id,
+            item.product_size,
+            item.quantity,
+            item.unit_price,
+            item.unit_cost,
+            item.total_price,
+            item.total_cost,
+            item.total_profit
+        ]);
+
+        await queryAsync(
+            `INSERT INTO order_items
+             (order_id, product_id, product_size, quantity, unit_price, unit_cost, total_price, total_cost, total_profit)
+             VALUES ?`,
+            [itemValues]
+        );
+
+        await queryAsync('UPDATE orders SET total_amount = ?, final_amount = ? WHERE id = ?', [newTotalAmount, newFinalAmount, payloadOrderId]);
+
+        for (const item of preparedItems) {
+            await queryAsync(
+                'UPDATE products SET inventory_count = GREATEST(inventory_count - ?, 0) WHERE id = ?',
+                [item.quantity, item.product_id]
+            );
+        }
+
+        await commitAsync();
+        res.json({ message: 'Items added successfully' });
+    } catch (error) {
+        await rollbackAsync();
+        res.status(500).json({ error: error.message });
+    }
 };
 
 exports.closeOrder = (req, res) => {
@@ -618,73 +802,67 @@ exports.closeOrder = (req, res) => {
   });
 };
 
-exports.updateOrder = (req, res) => {
-  console.log('Updating order with payload:', JSON.stringify(req.body, null, 2));
-  
+exports.updateOrder = async (req, res) => {
   const { id } = req.params;
-  const { customer_name, customer_email, customer_phone, items, total_amount, discount_applied, final_amount, payment_method, order_status } = req.body;
+  const {
+    customer_name,
+    customer_email,
+    customer_phone,
+    items = [],
+    total_amount,
+    discount_applied,
+    final_amount,
+    payment_method,
+    order_status
+  } = req.body;
 
-  db.beginTransaction(err => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    const preparedItems = items.length ? await prepareOrderItems(items) : [];
+    const orderTotals = sumPreparedItems(preparedItems);
+    const safeDiscount = toMoney(discount_applied);
+    const safeTotalAmount = toMoney(total_amount ?? orderTotals.totalAmount);
+    const safeFinalAmount = toMoney(final_amount ?? (safeTotalAmount - safeDiscount));
 
-    // Update order details
-    const orderSql = `
-      UPDATE orders 
-      SET customer_name = ?, customer_email = ?, customer_phone = ?, 
-          total_amount = ?, discount_applied = ?, final_amount = ?, 
-          payment_method = ?, order_status = ?
-      WHERE id = ?
-    `;
-    db.query(orderSql, [customer_name, customer_email, customer_phone, total_amount, discount_applied, final_amount, payment_method, order_status, id], (err) => {
-      if (err) {
-        console.error('Error updating order:', err);
-        return db.rollback(() => res.status(500).json({ error: err.message }));
-      }
+    await beginTransactionAsync();
 
-      // Delete old order items
-      db.query('DELETE FROM order_items WHERE order_id = ?', [id], (err) => {
-        if (err) {
-          console.error('Error deleting old order items:', err);
-          return db.rollback(() => res.status(500).json({ error: err.message }));
-        }
+    await queryAsync(
+      `UPDATE orders
+       SET customer_name = ?, customer_email = ?, customer_phone = ?,
+           total_amount = ?, discount_applied = ?, final_amount = ?,
+           payment_method = ?, order_status = ?
+       WHERE id = ?`,
+      [customer_name, customer_email, customer_phone, safeTotalAmount, safeDiscount, safeFinalAmount, payment_method, order_status, id]
+    );
 
-        // Insert new order items
-        if (items && items.length > 0) {
-          // Map items properly - handle both size and product_size
-          const itemValues = items.map(item => [
-            id, 
-            item.product_id, 
-            item.product_size || item.size || null, // Accept either field
-            item.quantity, 
-            Number(item.unit_price), 
-            Number(item.total_price)
-          ]);
-          
-          console.log('Inserting updated items:', itemValues);
-          
-          const itemSql = 'INSERT INTO order_items (order_id, product_id, product_size, quantity, unit_price, total_price) VALUES ?';
-          db.query(itemSql, [itemValues], (err) => {
-            if (err) {
-              console.error('Error inserting updated order items:', err);
-              return db.rollback(() => res.status(500).json({ error: err.message }));
-            }
+    await queryAsync('DELETE FROM order_items WHERE order_id = ?', [id]);
 
-            db.commit(err => {
-              if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-              console.log('Order updated successfully!');
-              res.json({ message: 'Order updated successfully' });
-            });
-          });
-        } else {
-          db.commit(err => {
-            if (err) return db.rollback(() => res.status(500).json({ error: err.message }));
-            console.log('Order updated (no items) successfully!');
-            res.json({ message: 'Order updated successfully' });
-          });
-        }
-      });
-    });
-  });
+    if (preparedItems.length) {
+      const itemValues = preparedItems.map(item => [
+        id,
+        item.product_id,
+        item.product_size,
+        item.quantity,
+        item.unit_price,
+        item.unit_cost,
+        item.total_price,
+        item.total_cost,
+        item.total_profit
+      ]);
+
+      await queryAsync(
+        `INSERT INTO order_items
+         (order_id, product_id, product_size, quantity, unit_price, unit_cost, total_price, total_cost, total_profit)
+         VALUES ?`,
+        [itemValues]
+      );
+    }
+
+    await commitAsync();
+    res.json({ message: 'Order updated successfully' });
+  } catch (error) {
+    await rollbackAsync();
+    res.status(500).json({ error: error.message });
+  }
 };
 
 // Testimonials
@@ -717,7 +895,64 @@ exports.getSettings = (req, res) => {
 
 // Stats
 exports.getDailyStats = (req, res) => {
-    db.query('SELECT * FROM daily_stats ORDER BY date DESC LIMIT 30', (err, results) => {
+    const { startDate, endDate, limit = 30 } = req.query;
+    const params = [];
+    const filters = [];
+
+    if (startDate) {
+        filters.push('stats.date >= ?');
+        params.push(startDate);
+    }
+    if (endDate) {
+        filters.push('stats.date <= ?');
+        params.push(endDate);
+    }
+
+    const sql = `
+        SELECT *
+        FROM (
+            SELECT
+                d.date,
+                COALESCE(o.total_sales, 0) AS total_sales,
+                COALESCE(o.total_cost, 0) AS total_cost,
+                COALESCE(o.total_profit, 0) AS total_profit,
+                COALESCE(c.total_credit, 0) AS total_credit,
+                COALESCE(c.total_debit, 0) AS total_debit
+            FROM (
+                SELECT DATE(created_at) AS date FROM orders
+                UNION
+                SELECT DATE(created_at) AS date FROM credit_debit
+            ) d
+            LEFT JOIN (
+                SELECT
+                    DATE(o.created_at) AS date,
+                    SUM(o.final_amount) AS total_sales,
+                    SUM(COALESCE(oi.total_cost, 0)) AS total_cost,
+                    SUM(COALESCE(oi.total_profit, 0) - COALESCE(o.discount_applied, 0)) AS total_profit
+                FROM orders o
+                LEFT JOIN (
+                    SELECT order_id, SUM(total_cost) AS total_cost, SUM(total_profit) AS total_profit
+                    FROM order_items
+                    GROUP BY order_id
+                ) oi ON oi.order_id = o.id
+                GROUP BY DATE(o.created_at)
+            ) o ON o.date = d.date
+            LEFT JOIN (
+                SELECT
+                    DATE(created_at) AS date,
+                    SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) AS total_credit,
+                    SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) AS total_debit
+                FROM credit_debit
+                GROUP BY DATE(created_at)
+            ) c ON c.date = d.date
+        ) stats
+        ${filters.length ? `WHERE ${filters.join(' AND ')}` : ''}
+        ORDER BY stats.date DESC
+        LIMIT ?
+    `;
+
+    params.push(Number(limit) || 30);
+    db.query(sql, params, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
     });
@@ -725,10 +960,18 @@ exports.getDailyStats = (req, res) => {
 
 exports.getSummaryStats = (req, res) => {
     const today = new Date().toISOString().split('T')[0];
+    const currentMonth = today.slice(0, 7);
     const sql = `
         SELECT 
             (SELECT IFNULL(SUM(final_amount), 0) FROM orders) as total_revenue,
             (SELECT IFNULL(SUM(final_amount), 0) FROM orders WHERE DATE(created_at) = ?) as today_revenue,
+            (SELECT IFNULL(SUM(COALESCE(oi.total_cost, 0)), 0) FROM orders o LEFT JOIN (SELECT order_id, SUM(total_cost) AS total_cost FROM order_items GROUP BY order_id) oi ON oi.order_id = o.id) as total_cost,
+            (SELECT IFNULL(SUM(COALESCE(oi.total_profit, 0) - COALESCE(o.discount_applied, 0)), 0) FROM orders o LEFT JOIN (SELECT order_id, SUM(total_profit) AS total_profit FROM order_items GROUP BY order_id) oi ON oi.order_id = o.id) as total_profit,
+            (SELECT IFNULL(SUM(COALESCE(oi.total_cost, 0)), 0) FROM orders o LEFT JOIN (SELECT order_id, SUM(total_cost) AS total_cost FROM order_items GROUP BY order_id) oi ON oi.order_id = o.id WHERE DATE(o.created_at) = ?) as today_cost,
+            (SELECT IFNULL(SUM(COALESCE(oi.total_profit, 0) - COALESCE(o.discount_applied, 0)), 0) FROM orders o LEFT JOIN (SELECT order_id, SUM(total_profit) AS total_profit FROM order_items GROUP BY order_id) oi ON oi.order_id = o.id WHERE DATE(o.created_at) = ?) as today_profit,
+            (SELECT IFNULL(SUM(final_amount), 0) FROM orders WHERE DATE_FORMAT(created_at, '%Y-%m') = ?) as current_month_revenue,
+            (SELECT IFNULL(SUM(COALESCE(oi.total_cost, 0)), 0) FROM orders o LEFT JOIN (SELECT order_id, SUM(total_cost) AS total_cost FROM order_items GROUP BY order_id) oi ON oi.order_id = o.id WHERE DATE_FORMAT(o.created_at, '%Y-%m') = ?) as current_month_cost,
+            (SELECT IFNULL(SUM(COALESCE(oi.total_profit, 0) - COALESCE(o.discount_applied, 0)), 0) FROM orders o LEFT JOIN (SELECT order_id, SUM(total_profit) AS total_profit FROM order_items GROUP BY order_id) oi ON oi.order_id = o.id WHERE DATE_FORMAT(o.created_at, '%Y-%m') = ?) as current_month_profit,
             (SELECT COUNT(*) FROM orders) as total_orders,
             (SELECT COUNT(*) FROM orders WHERE DATE(created_at) = ?) as today_orders,
             (SELECT COUNT(*) FROM products) as total_products,
@@ -736,17 +979,30 @@ exports.getSummaryStats = (req, res) => {
             (SELECT IFNULL(SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END), 0) FROM credit_debit) as total_credit,
             (SELECT IFNULL(SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END), 0) FROM credit_debit) as total_debit
     `;
-    db.query(sql, [today, today], (err, results) => {
+    db.query(sql, [today, today, today, currentMonth, currentMonth, currentMonth, today], (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results[0]);
     });
 };
 
 exports.getTransactions = (req, res) => {
+    const { startDate, endDate } = req.query;
+    const filters = [];
+    const params = [];
+
+    if (startDate) {
+        filters.push('DATE(o.created_at) >= ?');
+        params.push(startDate);
+    }
+    if (endDate) {
+        filters.push('DATE(o.created_at) <= ?');
+        params.push(endDate);
+    }
+
     const sql = `
         SELECT 
             DATE(o.created_at) as transaction_date,
-            o.invoice_number,
+            COALESCE(o.invoice_number, CONCAT('BWL-', LPAD(o.id, 8, '0'))) as invoice_number,
             o.customer_name,
             o.customer_phone,
             o.payment_method,
@@ -755,14 +1011,37 @@ exports.getTransactions = (req, res) => {
             o.final_amount,
             o.order_status,
             o.created_at,
-            COUNT(oi.id) as item_count,
-            SUM(oi.quantity) as total_quantity
+            COALESCE(oi.item_count, 0) as item_count,
+            COALESCE(oi.total_quantity, 0) as total_quantity,
+            COALESCE(oi.total_cost, 0) as total_cost,
+            COALESCE(oi.total_profit, 0) - COALESCE(o.discount_applied, 0) as total_profit,
+            COALESCE(oi.items_summary, '') as items_summary
         FROM orders o
-        LEFT JOIN order_items oi ON o.id = oi.order_id
-        GROUP BY o.id
+        LEFT JOIN (
+            SELECT
+                oi.order_id,
+                COUNT(oi.id) as item_count,
+                SUM(oi.quantity) as total_quantity,
+                SUM(oi.total_cost) as total_cost,
+                SUM(oi.total_profit) as total_profit,
+                GROUP_CONCAT(
+                    CONCAT(
+                        COALESCE(p.name, 'Deleted Product'),
+                        CASE WHEN oi.product_size IS NOT NULL AND oi.product_size <> '' THEN CONCAT(' (', oi.product_size, ')') ELSE '' END,
+                        ' x',
+                        oi.quantity
+                    )
+                    ORDER BY oi.id
+                    SEPARATOR ', '
+                ) as items_summary
+            FROM order_items oi
+            LEFT JOIN products p ON p.id = oi.product_id
+            GROUP BY oi.order_id
+        ) oi ON o.id = oi.order_id
+        ${filters.length ? `WHERE ${filters.join(' AND ')}` : ''}
         ORDER BY o.created_at DESC
     `;
-    db.query(sql, (err, results) => {
+    db.query(sql, params, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         
         // Group by date
@@ -776,6 +1055,70 @@ exports.getTransactions = (req, res) => {
         }, {});
         
         res.json(transactionsByDate);
+    });
+};
+
+exports.getMonthlyStats = (req, res) => {
+    const { startMonth, endMonth, limit = 12 } = req.query;
+    const filters = [];
+    const params = [];
+
+    if (startMonth) {
+        filters.push('stats.month >= ?');
+        params.push(startMonth);
+    }
+    if (endMonth) {
+        filters.push('stats.month <= ?');
+        params.push(endMonth);
+    }
+
+    const sql = `
+        SELECT *
+        FROM (
+            SELECT
+                m.month,
+                COALESCE(o.total_sales, 0) AS total_sales,
+                COALESCE(o.total_cost, 0) AS total_cost,
+                COALESCE(o.total_profit, 0) AS total_profit,
+                COALESCE(c.total_credit, 0) AS total_credit,
+                COALESCE(c.total_debit, 0) AS total_debit
+            FROM (
+                SELECT DATE_FORMAT(created_at, '%Y-%m') AS month FROM orders
+                UNION
+                SELECT DATE_FORMAT(created_at, '%Y-%m') AS month FROM credit_debit
+            ) m
+            LEFT JOIN (
+                SELECT
+                    DATE_FORMAT(o.created_at, '%Y-%m') AS month,
+                    SUM(o.final_amount) AS total_sales,
+                    SUM(COALESCE(oi.total_cost, 0)) AS total_cost,
+                    SUM(COALESCE(oi.total_profit, 0) - COALESCE(o.discount_applied, 0)) AS total_profit
+                FROM orders o
+                LEFT JOIN (
+                    SELECT order_id, SUM(total_cost) AS total_cost, SUM(total_profit) AS total_profit
+                    FROM order_items
+                    GROUP BY order_id
+                ) oi ON oi.order_id = o.id
+                GROUP BY DATE_FORMAT(o.created_at, '%Y-%m')
+            ) o ON o.month = m.month
+            LEFT JOIN (
+                SELECT
+                    DATE_FORMAT(created_at, '%Y-%m') AS month,
+                    SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) AS total_credit,
+                    SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) AS total_debit
+                FROM credit_debit
+                GROUP BY DATE_FORMAT(created_at, '%Y-%m')
+            ) c ON c.month = m.month
+        ) stats
+        ${filters.length ? `WHERE ${filters.join(' AND ')}` : ''}
+        ORDER BY stats.month DESC
+        LIMIT ?
+    `;
+
+    params.push(Number(limit) || 12);
+    db.query(sql, params, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
     });
 };
 

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from, map, of, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { Banner, Category, SubCategory, Product, ProductSize, Order, Stats, Customer, CreditDebit, DailyStats } from '../models/brew-and-leaf.models';
+import { Banner, Category, SubCategory, Product, ProductSize, Order, Stats, Customer, CreditDebit, DailyStats, MonthlyStats, TransactionRecord } from '../models/brew-and-leaf.models';
 import { StoreDataService } from './store-data.service';
 
 @Injectable({
@@ -194,8 +194,15 @@ export class ApiService {
     return this.http.put(`${this.apiUrl}/orders/${orderId}`, order);
   }
 
-  getTransactions(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/transactions`);
+  getTransactions(filters?: { startDate?: string; endDate?: string }): Observable<Record<string, TransactionRecord[]>> {
+    const params: any = {};
+    if (filters?.startDate) {
+      params.startDate = filters.startDate;
+    }
+    if (filters?.endDate) {
+      params.endDate = filters.endDate;
+    }
+    return this.http.get<Record<string, TransactionRecord[]>>(`${this.apiUrl}/transactions`, { params });
   }
 
   addProductSize(productId: number, size: ProductSize): Observable<ProductSize> {
@@ -225,9 +232,35 @@ export class ApiService {
     );
   }
 
-  getDailyStats(): Observable<DailyStats[]> {
-    return this.http.get<DailyStats[]>(`${this.apiUrl}/stats/daily`).pipe(
+  getDailyStats(filters?: { startDate?: string; endDate?: string; limit?: number }): Observable<DailyStats[]> {
+    const params: any = {};
+    if (filters?.startDate) {
+      params.startDate = filters.startDate;
+    }
+    if (filters?.endDate) {
+      params.endDate = filters.endDate;
+    }
+    if (filters?.limit) {
+      params.limit = filters.limit;
+    }
+    return this.http.get<DailyStats[]>(`${this.apiUrl}/stats/daily`, { params }).pipe(
       catchError(() => of(this.storeData.getDailyStats()))
+    );
+  }
+
+  getMonthlyStats(filters?: { startMonth?: string; endMonth?: string; limit?: number }): Observable<MonthlyStats[]> {
+    const params: any = {};
+    if (filters?.startMonth) {
+      params.startMonth = filters.startMonth;
+    }
+    if (filters?.endMonth) {
+      params.endMonth = filters.endMonth;
+    }
+    if (filters?.limit) {
+      params.limit = filters.limit;
+    }
+    return this.http.get<MonthlyStats[]>(`${this.apiUrl}/stats/monthly`, { params }).pipe(
+      catchError(() => of(this.storeData.getMonthlyStats()))
     );
   }
 

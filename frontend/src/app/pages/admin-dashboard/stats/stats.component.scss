@@ -1,7 +1,8 @@
 .dashboard-hero,
 .stat-card,
 .chart-card,
-.insight-card {
+.insight-card,
+.monthly-card {
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(75, 54, 33, 0.08);
   box-shadow: 0 24px 80px rgba(75, 54, 33, 0.08);
@@ -76,12 +77,17 @@ h3 {
 
 .stat-icon.revenue { background: rgba(0, 112, 74, 0.12); color: #00704a; }
 .stat-icon.today-revenue { background: rgba(0, 112, 74, 0.08); color: #00704a; }
+.stat-icon.cost { background: rgba(155, 107, 63, 0.12); color: #8b5e34; }
+.stat-icon.profit { background: rgba(0, 112, 74, 0.15); color: #00704a; }
+.stat-icon.margin { background: rgba(26, 115, 232, 0.12); color: #1a73e8; }
 .stat-icon.orders { background: rgba(75, 54, 33, 0.12); color: #4b3621; }
 .stat-icon.today-orders { background: rgba(75, 54, 33, 0.08); color: #4b3621; }
 .stat-icon.products { background: rgba(155, 107, 63, 0.14); color: #8b5e34; }
 .stat-icon.inventory { background: rgba(51, 51, 51, 0.08); color: #333; }
 .stat-icon.credit { background: rgba(0, 112, 74, 0.15); color: #00704a; }
 .stat-icon.debit { background: rgba(158, 35, 35, 0.15); color: #9e2323; }
+.stat-icon.month { background: rgba(75, 54, 33, 0.1); color: #4b3621; }
+.stat-icon.month-profit { background: rgba(0, 112, 74, 0.12); color: #00704a; }
 
 .stat-info p {
   margin: 0 0 0.3rem;
@@ -103,6 +109,12 @@ h3 {
   border-radius: 28px;
 }
 
+.monthly-card {
+  padding: 1.5rem;
+  border-radius: 28px;
+  margin-top: 1rem;
+}
+
 .card-head {
   margin-bottom: 1rem;
 }
@@ -110,6 +122,54 @@ h3 {
 .insight-card ul {
   margin: 1rem 0 0;
   padding-left: 1.1rem;
+}
+
+.month-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.month-summary div {
+  padding: 1rem;
+  border-radius: 18px;
+  background: rgba(75, 54, 33, 0.04);
+}
+
+.month-summary span {
+  display: block;
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+}
+
+.month-summary strong {
+  color: var(--color-primary);
+  font-size: 1.1rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.9rem 1rem;
+  text-align: left;
+}
+
+thead {
+  background: rgba(75, 54, 33, 0.04);
+}
+
+tbody tr + tr td {
+  border-top: 1px solid rgba(75, 54, 33, 0.08);
 }
 
 canvas {
@@ -121,5 +181,9 @@ canvas {
   .dashboard-layout {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .month-summary {
+    grid-template-columns: 1fr;
   }
 }

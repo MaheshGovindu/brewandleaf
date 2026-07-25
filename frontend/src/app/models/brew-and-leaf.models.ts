@@ -59,6 +59,11 @@ export interface OrderItem {
     total_price: number;
     size?: string; // 'small', 'regular', etc.
     image_url?: string;
+    unit_cost?: number;
+    unit_margin?: number;
+    total_cost?: number;
+    total_margin?: number;
+    total_profit?: number;
 }
 
 export interface Customer {
@@ -110,15 +115,55 @@ export interface DailyStats {
     date: string;
     total_sales?: number;
     total_cost?: number;
+    total_margin?: number;
     total_profit?: number;
     total_credit?: number;
     total_debit?: number;
     created_at?: string;
 }
 
+export interface MonthlyStats {
+    month: string;
+    total_sales?: number;
+    total_cost?: number;
+    total_margin?: number;
+    total_profit?: number;
+    total_credit?: number;
+    total_debit?: number;
+}
+
+export interface TransactionRecord {
+    transaction_date: string;
+    invoice_number: string;
+    customer_name?: string;
+    customer_phone?: string;
+    payment_method: 'cash' | 'online';
+    total_amount: number;
+    discount_applied: number;
+    final_amount: number;
+    total_cost?: number;
+    total_margin?: number;
+    total_profit?: number;
+    order_status?: 'open' | 'closed';
+    created_at: string;
+    item_count: number;
+    total_quantity: number;
+    items_summary?: string;
+}
+
 export interface Stats {
     total_revenue: number;
     today_revenue: number;
+    total_cost: number;
+    total_margin: number;
+    total_profit: number;
+    today_cost: number;
+    today_margin: number;
+    today_profit: number;
+    current_month_revenue: number;
+    current_month_cost: number;
+    current_month_margin: number;
+    current_month_profit: number;
     total_orders: number;
     today_orders: number;
     total_products: number;

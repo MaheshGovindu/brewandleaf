@@ -1,5 +1,6 @@
 .dashboard-hero,
-.transactions-card {
+.transactions-card,
+.filter-card {
   background: rgba(255, 255, 255, 0.88);
   border: 1px solid rgba(75, 54, 33, 0.08);
   box-shadow: 0 24px 80px rgba(75, 54, 33, 0.08);
@@ -28,6 +29,58 @@ h3 {
 
 .dashboard-hero p:last-child {
   color: var(--color-text-soft);
+}
+
+.filter-card {
+  padding: 1rem 1.25rem;
+  border-radius: 24px;
+  margin-bottom: 1.25rem;
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-group label {
+  font-size: 0.82rem;
+  color: var(--color-text-soft);
+}
+
+.filter-group input {
+  min-width: 180px;
+  padding: 0.75rem 0.9rem;
+  border-radius: 14px;
+  border: 1px solid rgba(75, 54, 33, 0.14);
+}
+
+.filter-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.75rem 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4b3621, #8b5e34);
+  color: white;
+}
+
+.btn-secondary {
+  background: rgba(75, 54, 33, 0.08);
+  color: var(--color-primary);
 }
 
 .transactions-section {
@@ -148,6 +201,12 @@ td {
   color: var(--color-primary);
 }
 
+.item-summary {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--color-text-soft);
+}
+
 .empty-state,
 .loading-state {
   text-align: center;
@@ -160,4 +219,16 @@ td {
   font-size: 3rem;
   margin-bottom: 1rem;
   display: block;
+}
+
+@media (max-width: 900px) {
+  .filter-card {
+    align-items: stretch;
+  }
+
+  .filter-group,
+  .filter-group input,
+  .filter-actions {
+    width: 100%;
+  }
 }

@@ -36,7 +36,7 @@ export class ProductManagementComponent implements OnInit {
 
   hasSizeVariants = false;
   smallSize: SizeFormValue = { price: 0, costing: 0 };
-  regularSize: SizeFormValue = { price: 0, costing: 0 };
+  regularSize: SizeFormValue = { price: 0, costing: 0,};
 
   selectedFile: File | null = null;
   selectedFiles: File[] = [];
@@ -93,12 +93,8 @@ export class ProductManagementComponent implements OnInit {
     }
   }
 
-  saveProduct(): void {
-    if (this.hasSizeVariants) {
-      this.newProduct.price = this.regularSize.price || this.newProduct.price;
-      this.newProduct.costing = this.regularSize.costing || this.newProduct.costing;
-    }
 
+  saveProduct(): void {
     const formData = new FormData();
     Object.keys(this.newProduct).forEach(key => {
       const value = (this.newProduct as any)[key];
@@ -171,7 +167,7 @@ export class ProductManagementComponent implements OnInit {
     const payload: ProductSize = {
       size: sizeName,
       price: Number(formValue.price) || 0,
-      costing: Number(formValue.costing) || 0
+      costing: Number(formValue.costing) || 0,
     };
 
     if (formValue.id) {
@@ -197,12 +193,12 @@ export class ProductManagementComponent implements OnInit {
     this.smallSize = {
       id: small?.id,
       price: small ? Number(small.price) : 0,
-      costing: small ? Number(small.costing || 0) : 0
+      costing: small ? Number(small.costing || 0) : 0,
     };
     this.regularSize = {
       id: regular?.id,
       price: regular ? Number(regular.price) : Number(prod.price) || 0,
-      costing: regular ? Number(regular.costing || 0) : Number(prod.costing) || 0
+      costing: regular ? Number(regular.costing || 0) : Number(prod.costing) || 0,
     };
   }
 

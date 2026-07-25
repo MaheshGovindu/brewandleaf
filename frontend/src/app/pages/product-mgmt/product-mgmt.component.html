@@ -40,7 +40,7 @@
   <div class="modal" *ngIf="showModal">
     <div class="modal-content">
       <h3>{{isEditing ? 'Edit' : 'Add new'}} product</h3>
-      <form (ngSubmit)="saveProduct()">
+      <form >
         <div class="form-grid">
           <div class="form-group">
             <label>Name</label>
@@ -75,25 +75,28 @@
               <label>Costing</label>
               <input type="number" [(ngModel)]="newProduct.costing" name="costing" required>
             </div>
+            
           </ng-container>
 
           <ng-container *ngIf="hasSizeVariants">
             <div class="form-group">
               <label>Small price</label>
-              <input type="number" [(ngModel)]="smallSize.price" name="smallPrice" required>
+              <input type="number" [(ngModel)]="smallSize.price"  name="smallPrice" required>
             </div>
             <div class="form-group">
               <label>Small costing</label>
               <input type="number" [(ngModel)]="smallSize.costing" name="smallCosting">
             </div>
+            
             <div class="form-group">
               <label>Regular price</label>
-              <input type="number" [(ngModel)]="regularSize.price" name="regularPrice" required>
+              <input type="number" [(ngModel)]="regularSize.price"  name="regularPrice" required>
             </div>
             <div class="form-group">
               <label>Regular costing</label>
               <input type="number" [(ngModel)]="regularSize.costing" name="regularCosting">
             </div>
+            
           </ng-container>
           <div class="form-group">
             <label>Inventory Count</label>
@@ -110,7 +113,7 @@
         </div>
         <div class="modal-actions">
           <button type="button" (click)="closeModal()">Cancel</button>
-          <button type="submit" class="btn-save">{{isEditing ? 'Update' : 'Save'}} Product</button>
+          <button type="submit" (click)="saveProduct()" class="btn-save">{{isEditing ? 'Update' : 'Save'}} Product</button>
         </div>
       </form>
     </div>

@@ -1,11 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Banner, Category, Order, Product, Stats, SubCategory } from '../models/brew-and-leaf.models';
+import { Banner, Category, DailyStats, MonthlyStats, Order, Product, Stats, SubCategory } from '../models/brew-and-leaf.models';
 import { DEMO_BANNERS, DEMO_CATEGORIES, DEMO_ORDERS, DEMO_PRODUCTS, DEMO_SUB_CATEGORIES } from '../data/demo-store.data';
-
-interface DailyStat {
-  date: string;
-  revenue: number;
-}
 
 @Injectable({
   providedIn: 'root'
@@ -233,28 +228,77 @@ export class StoreDataService {
   getStats(): Stats {
     const orders = this.getOrders();
     const products = this.getProducts();
+    const totalRevenue = orders.reduce((sum, order) => sum + Number(order.final_amount || 0), 0);
+    const totalCost = orders.reduce((sum, order) => sum + order.items.reduce((itemSum, item) => itemSum + Number(item.total_cost || 0), 0), 0);
+    const totalMargin = orders.reduce((sum, order) => sum + order.items.reduce((itemSum, item) => itemSum + Number(item.total_margin || 0), 0), 0);
     return {
-    total_revenue: orders.reduce((sum, order) => sum + Number(order.final_amount || 0), 0),
-    total_orders: orders.length,
-    total_products: products.length,
-    total_inventory: products.reduce((sum, product) => sum + Number(product.inventory_count || 0), 0),
-    today_revenue: 0,
-    today_orders: 0,
-    total_credit: 0,
-    total_debit: 0
-};
+      total_revenue: totalRevenue,
+      today_revenue: 0,
+      total_cost: totalCost,
+      total_margin: totalMargin,
+      total_profit: totalRevenue - totalCost,
+      today_cost: 0,
+      today_margin: 0,
+      today_profit: 0,
+      current_month_revenue: 0,
+      current_month_cost: 0,
+      current_month_margin: 0,
+      current_month_profit: 0,
+      total_orders: orders.length,
+      today_orders: 0,
+      total_products: products.length,
+      total_inventory: products.reduce((sum, product) => sum + Number(product.inventory_count || 0), 0),
+      total_credit: 0,
+      total_debit: 0
+    };
   }
 
-  getDailyStats(): DailyStat[] {
-    const byDate = new Map<string, number>();
+  getDailyStats(): DailyStats[] {
+    const byDate = new Map<string, DailyStats>();
     this.getOrders().forEach(order => {
       const date = new Date(order.created_at || new Date()).toLocaleDateString('en-CA');
-      byDate.set(date, (byDate.get(date) || 0) + Number(order.final_amount || 0));
+      const entry = byDate.get(date) || {
+        date,
+        total_sales: 0,
+        total_cost: 0,
+        total_margin: 0,
+        total_profit: 0,
+        total_credit: 0,
+        total_debit: 0
+      };
+      entry.total_sales = Number(entry.total_sales || 0) + Number(order.final_amount || 0);
+      entry.total_cost = Number(entry.total_cost || 0) + order.items.reduce((sum, item) => sum + Number(item.total_cost || 0), 0);
+      entry.total_margin = Number(entry.total_margin || 0) + order.items.reduce((sum, item) => sum + Number(item.total_margin || 0), 0);
+      entry.total_profit = Number(entry.total_profit || 0) + (Number(order.final_amount || 0) - order.items.reduce((sum, item) => sum + Number(item.total_cost || 0), 0));
+      byDate.set(date, entry);
     });
 
     return Array.from(byDate.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, revenue]) => ({ date, revenue }));
+      .map(([, stat]) => stat);
+  }
+
+  getMonthlyStats(): MonthlyStats[] {
+    const byMonth = new Map<string, MonthlyStats>();
+    this.getDailyStats().forEach(stat => {
+      const month = stat.date.slice(0, 7);
+      const entry = byMonth.get(month) || {
+        month,
+        total_sales: 0,
+        total_cost: 0,
+        total_margin: 0,
+        total_profit: 0,
+        total_credit: 0,
+        total_debit: 0
+      };
+      entry.total_sales = Number(entry.total_sales || 0) + Number(stat.total_sales || 0);
+      entry.total_cost = Number(entry.total_cost || 0) + Number(stat.total_cost || 0);
+      entry.total_margin = Number(entry.total_margin || 0) + Number(stat.total_margin || 0);
+      entry.total_profit = Number(entry.total_profit || 0) + Number(stat.total_profit || 0);
+      byMonth.set(month, entry);
+    });
+
+    return Array.from(byMonth.values()).sort((a, b) => b.month.localeCompare(a.month));
   }
 
   private ensureSeedData(): void {

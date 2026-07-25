@@ -71,6 +71,7 @@ router.post('/upload-invoice', upload.single('file'), controller.uploadInvoice);
 
 // Dashboard & Stats
 router.get('/stats/daily', controller.getDailyStats);
+router.get('/stats/monthly', controller.getMonthlyStats);
 router.get('/stats/summary', controller.getSummaryStats);
 
 // Public Site Content
